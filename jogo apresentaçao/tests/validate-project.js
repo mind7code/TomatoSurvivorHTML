@@ -1,5 +1,5 @@
 const fs = require('fs');
-const files = ['js/config.js','js/audio.js','js/quality.js','js/content/addons.js','js/content/enemies.js','js/state/player.js','js/combat/collision-grid.js','js/render/culling.js'];
+const files = ['js/config.js','js/audio.js','js/quality.js','js/content/addons.js','js/content/enemies.js','js/state/player.js','js/combat/collision-grid.js','js/render/culling.js','js/render/arena-decor.js'];
 for (const file of files) new Function(fs.readFileSync(file, 'utf8'));
 const html = fs.readFileSync('tomato (2).html', 'utf8');
 const start = html.lastIndexOf('<script>') + 8, end = html.indexOf('</script>', start);
