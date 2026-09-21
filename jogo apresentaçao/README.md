@@ -12,8 +12,10 @@ Abra `tomato (2).html` para jogar. Os scripts externos são clássicos (não ES 
 - `js/state/player.js` — factory do estado inicial do jogador.
 - `js/combat/collision-grid.js` — índice espacial usado pelas colisões de projéteis.
 - `js/render/culling.js` — descarte de objetos fora da câmera.
+- `js/render/arena-decor.js` — cenário procedural pré-renderizado e caixas/barris visuais que se despedaçam com tiros.
 - `tomato (2).html` — interface e núcleo de jogo atual.
 
 Execute `node tests/validate-project.js` para validar a sintaxe e confirmar que todos os arquivos externos estão carregados pelo jogo.
+Execute `node tests/smoke-runtime.js` para exercitar inicialização, desenho e 180 frames de cada personagem sem depender de um navegador.
 
 O próximo passo seguro é mover um sistema por vez do núcleo: renderização, combate, inimigos e interface. Dessa forma, cada mudança continua testável e não quebra o jogo que já funciona.
