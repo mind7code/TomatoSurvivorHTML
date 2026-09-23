@@ -7,6 +7,7 @@ window.TomatoConfig = Object.freeze({
     maxEnemyBullets: 360,
     maxParticles: 260,
     maxFlashes: 72,
+    maxDrops: 600,
     gridCell: 104,
     simulationHz: 60,
     hudRefreshSeconds: 0.10

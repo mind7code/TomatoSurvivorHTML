@@ -40,17 +40,21 @@ window.TomatoRender.createArenaDecor = ({ width, height }) => {
     [width * .75, height * .19, 'scarecrow']
   ].forEach(([x, y, type], index) => objects.push({ x, y, type, size: .9 + (index % 2) * .12, rotation: 0, tone: index / 8, hp: type === 'stump' ? 0 : 3, dead: false }));
   const props = objects.filter(item => item.type === 'crate' || item.type === 'barrel');
+  const depthItems = objects.filter(item => ['crate','barrel','fence','well','cart','scarecrow'].includes(item.type));
+  depthItems.forEach(item => { item.decor = true; });
 
   const ellipse = (ctx, x, y, rx, ry, fill, stroke = null, line = 2) => {
     ctx.beginPath();ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);ctx.fillStyle = fill;ctx.fill();
     if (stroke) { ctx.strokeStyle = stroke;ctx.lineWidth = line;ctx.stroke(); }
   };
 
-  const draw = (ctx, propsOnly = false) => {
-    for (const item of propsOnly ? props : objects) {
+  const draw = (ctx, layer = 'background', itemOnly = null) => {
+    const source = itemOnly ? [itemOnly] : objects;
+    for (const item of source) {
       const { x, y, size, type, rotation, tone } = item;
       const dynamic = type === 'crate' || type === 'barrel';
-      if (dynamic !== propsOnly || item.dead) continue;
+      const foreground = type === 'fence' || type === 'well' || type === 'cart' || type === 'scarecrow';
+      if (item.dead || (layer === 'background' && (dynamic || foreground))) continue;
       ctx.save();ctx.translate(x, y);ctx.rotate(rotation);
       if (type === 'dirt') {
         ctx.globalAlpha = .19;ellipse(ctx, 0, 0, 20 * size, 9 * size, tone > .5 ? '#282a28' : '#887464');
@@ -92,7 +96,8 @@ window.TomatoRender.createArenaDecor = ({ width, height }) => {
 
   return {
     draw: ctx => draw(ctx),
-    drawProps: ctx => draw(ctx, true),
+    depthItems,
+    drawObject: (ctx, item) => draw(ctx, 'depth', item),
     hitProps(x, y, radius, seen) {
       for (const item of props) {
         if (item.hp <= 0 || item.dead || seen.has(item)) continue;
