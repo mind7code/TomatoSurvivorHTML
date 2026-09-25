@@ -136,7 +136,7 @@ test('Chefes executam todos os padrões e duas fases sem exceder limites', g => 
   }
 });
 test('Carga de seis armas, projéteis e partículas respeita os tetos', g => {
-  g.execute("wave=19;player.maxHp=1e8;player.hp=1e8;player.inv=1000;player.weapons=['minigun','machineGun','flamethrower','thornSprayer','rifle','shotgun'].map(id=>createWeapon(id,'legendary',5));for(let i=0;i<165;i++)EnemyManager.spawn('tank',{x:300+i%20*30,y:150+i%12*25});enemies.forEach(e=>{e.hp=1e9;e.maxHp=1e9;e.speed=0});for(let i=0;i<120;i++){update(1/60);if(i%10===0)draw()}");
+  g.execute("wave=19;player.maxHp=1e8;player.hp=1e8;player.inv=1000;aimInput.state.down=true;player.weapons=['minigun','machineGun','flamethrower','thornSprayer','rifle','shotgun'].map(id=>createWeapon(id,'legendary',5));for(let i=0;i<165;i++)EnemyManager.spawn('tank',{x:300+i%20*30,y:150+i%12*25});enemies.forEach(e=>{e.hp=1e9;e.maxHp=1e9;e.speed=0});for(let i=0;i<120;i++){update(1/60);if(i%10===0)draw()}");
   assert(g.execute('bullets.length<=quality.profile().bullets&&particles.length<=quality.profile().particles&&impactFlashes.length<=quality.profile().flashes'));
 });
 test('Vinte ondas, quatro chefes, recompensas, vitória e restart', g => {
@@ -162,7 +162,7 @@ const snapshots=[];
 for(const fps of [60,120,144,240]) {
   const g=createGame();g.execute("startGame();spawnClock=999;keys.KeyD=true");g.runFrames(fps,2);
   const motion=g.execute('({x:player.x,y:player.y,waveTime})');
-  g.execute("startGame('ember');spawnClock=999;player.inv=1000;EnemyManager.spawn('normal',{x:player.x+100,y:player.y});enemies[0].hp=1e9;enemies[0].maxHp=1e9;enemies[0].speed=0");g.runFrames(fps,3);
+  g.execute("startGame('ember');spawnClock=999;player.inv=1000;aimInput.state.down=true;EnemyManager.spawn('normal',{x:player.x+100,y:player.y});enemies[0].hp=1e9;enemies[0].maxHp=1e9;enemies[0].speed=0");g.runFrames(fps,3);
   snapshots.push({motion,combat:g.execute('enemies[0].hp')});
 }
 for(const s of snapshots.slice(1)){assert(Math.abs(s.motion.x-snapshots[0].motion.x)<1e-7);assert(Math.abs(s.motion.waveTime-snapshots[0].motion.waveTime)<1e-7);assert.equal(s.combat,snapshots[0].combat)}

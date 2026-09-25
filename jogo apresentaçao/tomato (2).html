@@ -7,161 +7,7 @@
   <meta name="description" content="Tomato Survivor: sobreviva às ondas, evolua seu tomate e proteja a horta.">
   <title>Tomato Survivor</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='18' r='12' fill='%23e94242' stroke='%23262626' stroke-width='3'/%3E%3Cpath d='M16 8c-4-5-9-2-10 0 4 0 5 2 7 4m3-4c4-5 9-2 10 0-4 0-5 2-7 4' fill='%2359ad45' stroke='%23262626' stroke-width='2' stroke-linejoin='round'/%3E%3Ccircle cx='12' cy='17' r='1.5' fill='%23fff'/%3E%3Ccircle cx='20' cy='17' r='1.5' fill='%23fff'/%3E%3C/svg%3E">
-  <style>
-    :root{--ink:#fff;--muted:#c9c9c9;--panel:#292929;--panel2:#383838;--edge:#111;--red:#e84545;--red2:#9f252d;--green:#66bd50;--gold:#ffc83d;--blue:#53b7df}
-    *{box-sizing:border-box}
-    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#171717;color:var(--ink);font-family:Inter,ui-rounded,"Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif}
-    button{font:inherit}
-    body{display:grid;place-items:center;background:radial-gradient(circle at 50% 15%,#444 0,#202020 46%,#101010 100%)}
-    /* A arena sempre ocupa a maior área possível sem distorcer o canvas 16:9. */
-    .shell{position:relative;width:min(100vw,177.7778dvh);aspect-ratio:16/9;height:auto;max-height:100dvh;min-height:0;background:#8eab6b;border:5px solid #0e0e0e;border-radius:18px;box-shadow:0 0 0 2px #555,0 28px 80px #000d;overflow:hidden;isolation:isolate;container-type:inline-size}
-    #game{display:block;width:100%;height:100%;background:#9bb477}
-    .screen{position:absolute;inset:0;display:none;z-index:5}
-    .screen.show{display:flex}
-    .menu{align-items:center;justify-content:center;flex-direction:column;padding:clamp(16px,4vw,48px);background:radial-gradient(circle at 50% 35%,#303030e8,#151515f7 70%),linear-gradient(135deg,#fff1 25%,transparent 25%) 0 0/44px 44px}
-    .logo{margin:0;color:#fff;font-family:Impact,"Arial Black",sans-serif;font-size:clamp(42px,7vw,88px);line-height:.83;text-align:center;letter-spacing:.015em;text-transform:uppercase;-webkit-text-stroke:3px #171717;text-shadow:0 7px 0 #8e1e26,0 11px 14px #0009;transform:rotate(-2deg)}
-    .leaf{display:inline-block;color:#72c65b;text-shadow:0 5px 0 #2c6e31,0 8px 10px #0007;transform:rotate(5deg)}
-    .subtitle{margin:17px 0 22px;color:var(--gold);font-weight:900;font-size:clamp(15px,1.8vw,21px);letter-spacing:.12em;text-transform:uppercase;text-shadow:0 2px 0 #111}
-    .pick-title{font-size:clamp(15px,1.5vw,18px);font-weight:800;margin:0 0 11px;color:#eee;text-transform:uppercase}
-    .characters{display:grid;grid-template-columns:repeat(3,minmax(145px,190px));gap:14px;max-width:650px;width:100%}
-    .character{position:relative;background:linear-gradient(#424242,#292929);border:3px solid #111;border-radius:12px;color:var(--ink);padding:14px 10px 12px;cursor:pointer;text-align:center;box-shadow:inset 0 1px 0 #ffffff26,0 7px 0 #111,0 11px 18px #0008;transition:transform .14s,border-color .14s,filter .14s;min-height:132px}
-    .character:hover,.character:focus-visible{transform:translateY(-5px) scale(1.02);border-color:#fff;outline:none;filter:brightness(1.12)}
-    .character.selected{border-color:var(--gold);background:linear-gradient(#555,#343434);box-shadow:0 0 0 3px #8d641d,0 7px 0 #111,0 0 24px #ffc83d55}
-    .tomato-icon{display:block;font-size:48px;line-height:1;margin-bottom:8px;filter:drop-shadow(0 5px 4px #0008)}
-    .character strong{display:block;font-size:16px;font-weight:1000;text-transform:uppercase}
-    .character small{display:block;color:var(--muted);font-size:12px;line-height:1.25;margin-top:5px}
-    .start{margin-top:20px;border:3px solid #111;border-radius:10px;background:linear-gradient(#f35a54,#cf3038);color:white;padding:13px 38px;cursor:pointer;font-size:clamp(17px,2vw,22px);font-weight:1000;text-transform:uppercase;box-shadow:inset 0 2px 0 #ffaaa0,0 7px 0 #7d1f2b,0 10px 15px #0008;transform:translateY(0)}
-    .start:hover,.start:focus-visible{filter:brightness(1.12);outline:3px solid #fff;outline-offset:3px}
-    .start:active{transform:translateY(5px);box-shadow:inset 0 2px 0 #ffaaa0,0 2px 0 #7d1f2b,0 5px 10px #0008}
-    .controls-hint{margin:19px 0 0;color:#bdbdbd;text-align:center;font-size:13px;font-weight:700}
-    .hud{position:absolute;inset:0;z-index:3;pointer-events:none;display:none}
-    .hud.show{display:block}
-    .topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:12px;padding:13px}
-    .box{background:linear-gradient(#343434ee,#202020ee);border:3px solid #0d0d0d;border-radius:9px;box-shadow:inset 0 1px 0 #ffffff29,0 5px 9px #0007;padding:8px 11px;min-width:205px}
-    .box.right{justify-self:end;text-align:right;min-width:155px}
-    .wave{text-align:center;background:linear-gradient(#3b3b3bf2,#232323f2);border:3px solid #0d0d0d;border-radius:10px;padding:7px 17px;box-shadow:inset 0 1px 0 #ffffff2b,0 5px 9px #0007;font-weight:1000;font-size:18px;text-transform:uppercase}
-    .wave b{color:var(--gold)}
-    .barline{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:1000;text-shadow:0 2px 0 #000}
-    .bar{height:14px;background:#101010;border:2px solid #050505;border-radius:999px;flex:1;min-width:85px;position:relative;overflow:hidden;box-shadow:inset 0 2px 3px #000b}
-    .fill{height:100%;width:100%;border-radius:999px;background:linear-gradient(90deg,#d72f38,#ff625b);box-shadow:inset 0 2px 0 #fff5}
-    .fill.xp{background:linear-gradient(90deg,#2995ca,#64cef1)}
-    .stats{font-size:12px;line-height:1.45;color:#ded2e7}
-    .stats strong{color:#fff4d6}
-    .pause-btn,.quality-btn{pointer-events:auto;position:absolute;right:13px;width:44px;height:44px;border:3px solid #111;border-radius:9px;background:linear-gradient(#474747ee,#282828ee);color:white;cursor:pointer;font-size:20px;box-shadow:0 5px 9px #0008}.pause-btn{bottom:13px}.quality-btn{bottom:64px;font-size:13px;font-weight:1000}.quality-btn:hover,.quality-btn:focus-visible{border-color:var(--gold);outline:none}
-    .notice{position:absolute;left:50%;top:24%;transform:translate(-50%,-50%) scale(.92);color:#fff;font-family:Impact,"Arial Black",sans-serif;font-size:clamp(32px,5vw,66px);font-weight:900;text-transform:uppercase;-webkit-text-stroke:2px #151515;text-shadow:0 6px 0 #9b262d,0 10px 16px #0009;opacity:0;transition:opacity .18s,transform .18s;white-space:nowrap}
-    .notice.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
-    .modal{align-items:center;justify-content:center;background:#101010cb;padding:18px;backdrop-filter:blur(6px)}
-    .panel{width:min(760px,94%);background:linear-gradient(145deg,#3b3b3b,#242424);border:4px solid #101010;border-radius:16px;box-shadow:inset 0 2px 0 #ffffff28,0 10px 0 #111,0 18px 35px #000b;padding:22px}
-    .panel h2{margin:0;text-align:center;text-transform:uppercase;font-family:Impact,"Arial Black",sans-serif;font-size:clamp(27px,4vw,44px);letter-spacing:.03em;-webkit-text-stroke:1px #151515;text-shadow:0 4px 0 #8e242c}
-    .panel>p{text-align:center;color:var(--muted);margin:7px 0 16px}
-    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:14px}
-    .upgrade{background:linear-gradient(#4a4a4a,#303030);border:3px solid #151515;border-radius:12px;color:var(--ink);padding:16px 14px;min-height:158px;cursor:pointer;text-align:left;box-shadow:inset 0 1px 0 #ffffff2b,0 6px 0 #151515;transition:transform .14s,border-color .14s,filter .14s}
-    .upgrade:hover,.upgrade:focus-visible{transform:translateY(-5px);border-color:var(--gold);outline:none;filter:brightness(1.1)}
-    .upgrade .uicon{display:block;font-size:29px;margin-bottom:8px}
-    .upgrade strong{display:block;color:var(--gold);font-size:16px;text-transform:uppercase}
-    .upgrade small{display:block;color:#ddd;font-size:13px;line-height:1.35;margin-top:7px}
-    .upgrade .price{color:#8ade68;margin-top:10px;font-weight:1000}
-    .end-panel{text-align:center;max-width:520px}
-    .end-panel .big-tomato{font-size:70px;display:block;filter:drop-shadow(0 6px 0 #5f1923)}
-    .end-stats{display:flex;justify-content:center;gap:18px;color:#d8cadf;margin:14px 0 4px}
-    .end-stats b{color:var(--gold)}
-    .touch{display:none;position:absolute;inset:0;z-index:4;pointer-events:none}
-    .stick{pointer-events:auto;position:absolute;left:20px;bottom:20px;width:112px;height:112px;border:3px solid #fff7;background:#1b1b1b77;border-radius:50%;box-shadow:inset 0 3px 12px #0008;touch-action:none}
-    .knob{position:absolute;width:46px;height:46px;left:30px;top:30px;background:linear-gradient(#fff,#aaa);border:3px solid #222;border-radius:50%;box-shadow:0 3px 8px #0008}
-    .dash{pointer-events:auto;position:absolute;right:22px;bottom:22px;width:78px;height:78px;border-radius:50%;border:4px solid #151515;background:linear-gradient(#f35b55dd,#c52f38dd);color:white;font-weight:1000;font-size:13px;box-shadow:inset 0 2px 0 #fff5,0 6px 0 #751e26,0 10px 14px #0007;touch-action:none}
-    .dash.cool{filter:grayscale(.8);opacity:.6}
-    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-    .loading{align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(circle at 50% 42%,#3d3d3d,#151515 72%);overflow:hidden}
-    .loading::before{content:"";position:absolute;inset:-20%;background:conic-gradient(from 0deg,#e8454515,#0000,#66bd5018,#0000,#e8454515);animation:spinbg 16s linear infinite}
-    .load-particle{position:absolute;width:8px;height:8px;border-radius:50%;background:#ff5c55;box-shadow:0 0 14px #ff5c55;animation:floatParticle 5s ease-in-out infinite}
-    .load-particle:nth-child(2){left:15%;top:72%;animation-delay:-1s;background:#7acb5e}.load-particle:nth-child(3){left:82%;top:25%;animation-delay:-2.2s}.load-particle:nth-child(4){left:72%;top:80%;animation-delay:-3.4s;background:#ffd159}.load-particle:nth-child(5){left:24%;top:20%;animation-delay:-4.1s;background:#66bd50}
-    .loading-card{position:relative;z-index:1;width:min(440px,88%);padding:27px 30px 25px;border:3px solid #111;border-radius:18px;background:linear-gradient(145deg,#3b3b3bf2,#222222f5);box-shadow:inset 0 2px 0 #ffffff22,0 10px 0 #111,0 22px 50px #000a;text-align:center}
-    .loading-card .logo{font-size:clamp(39px,6vw,65px);margin-bottom:22px}
-    .loading-label{display:block;text-align:left;font-size:14px;font-weight:900;text-transform:uppercase;margin:0 0 7px;color:#ddd}
-    .nick-row{display:flex;gap:8px}
-    .nick-input{min-width:0;flex:1;border:3px solid #111;border-radius:10px;background:#161616;color:#fff;font:800 17px inherit;padding:12px 13px;outline:none;box-shadow:inset 0 3px 8px #0008}
-    .nick-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px #ffc83d33,inset 0 3px 8px #0008}
-    .loadbar{height:10px;border:2px solid #0b0b0b;border-radius:99px;background:#111;overflow:hidden;margin:18px 0 3px}
-    .loadfill{height:100%;width:0;background:linear-gradient(90deg,#bd2932,#ff6159,#ffd04a);border-radius:99px;animation:load 1.35s ease-out forwards}
-    .loading.ready .loadfill{width:100%}.loading.ready .loading-play{opacity:1;transform:translateY(0);pointer-events:auto}
-    .loading-play{opacity:.35;transform:translateY(6px);pointer-events:none;margin-top:17px;width:100%}
-    .profile-pill{display:flex;align-items:center;gap:8px;margin:-8px 0 12px;padding:6px 10px;border:2px solid #111;border-radius:999px;background:#242424;color:#ddd;font-size:13px;font-weight:800}
-    .profile-pill button{border:0;background:none;color:var(--gold);font-weight:900;cursor:pointer;text-decoration:underline}
-    .inventory{position:absolute;left:13px;bottom:13px;display:flex;gap:7px;pointer-events:auto}
-    .weapon-slot{width:50px;height:50px;border:3px solid #111;border-radius:9px;background:linear-gradient(#454545e8,#242424e8);color:#fff;box-shadow:0 4px 8px #0008;display:grid;place-items:center;position:relative;font-size:22px;cursor:pointer;padding:0}
-    .weapon-slot:hover,.weapon-slot:focus-visible{transform:translateY(-3px);outline:2px solid #fff;outline-offset:2px}
-    .weapon-slot small{position:absolute;right:3px;bottom:1px;font-size:10px;font-weight:1000;text-shadow:0 2px 0 #000}
-    .weapon-slot.common{border-color:#8f8f8f}.weapon-slot.uncommon{border-color:#6dc05a}.weapon-slot.rare{border-color:#4ca7e6}.weapon-slot.epic{border-color:#b766df}.weapon-slot.legendary{border-color:#ffb62f;box-shadow:0 0 14px #ffb62f66}
-    .weapon-info{position:absolute;left:50%;bottom:13px;transform:translateX(-50%);min-width:225px;padding:7px 13px;border:3px solid #111;border-radius:9px;background:linear-gradient(#3c3c3cee,#202020ee);box-shadow:0 4px 9px #0008;text-align:center;font-size:12px;font-weight:800}
-    .weapon-info b{display:block;color:#fff;font-size:14px}.weapon-info span{color:#bbb}
-    .arsenal-btn{pointer-events:auto;position:absolute;left:13px;bottom:70px;border:3px solid #111;border-radius:9px;background:linear-gradient(#535353ee,#292929ee);color:#fff;padding:7px 12px;font-size:12px;font-weight:1000;cursor:pointer;box-shadow:0 4px 8px #0008}
-    .arsenal-btn:hover,.arsenal-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-    .arsenal-panel{width:min(900px,96%)}
-    .arsenal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
-    .arsenal-card{border:3px solid #171717;border-radius:12px;background:linear-gradient(#494949,#292929);padding:12px;box-shadow:0 5px 0 #151515}
-    .arsenal-card.primary{box-shadow:0 0 0 2px var(--gold),0 5px 0 #151515}
-    .arsenal-head{display:flex;align-items:center;gap:9px}.arsenal-icon{font-size:28px}.weapon-sprite{display:block;object-fit:contain;image-rendering:auto}.arsenal-icon.weapon-sprite{width:38px;height:38px;flex:0 0 38px}.weapon-slot .weapon-sprite{width:32px;height:32px;margin:auto}.arsenal-head strong{font-size:14px;color:var(--gold);text-transform:uppercase}.arsenal-head small{display:block;color:#ccc;font-size:12px;margin-top:2px}
-    .arsenal-actions{display:flex;gap:6px;margin-top:10px}.arsenal-actions button{flex:1;min-height:35px;border:2px solid #151515;border-radius:7px;background:#202020;color:#fff;font-size:12px;font-weight:900;cursor:pointer}.arsenal-actions button:hover,.arsenal-actions button:focus-visible{border-color:var(--gold);outline:none}.arsenal-actions .remove{color:#ff8b85}.arsenal-actions .replace{color:#a8eb72}
-    .arsenal-close{display:block;margin:18px auto 0}
-    .boss-reward-panel{width:min(860px,96%);border-color:#5a3b13;box-shadow:inset 0 2px 0 #fff4,0 10px 0 #291b0c,0 0 45px #ffc83d33}.boss-reward-panel h2{color:#ffe083;text-shadow:0 4px 0 #8e5420}.boss-reward-panel>p{color:#f1dfb9}
-    .boss-wrap{position:absolute;left:50%;top:70px;transform:translateX(-50%);width:min(460px,55%);opacity:0;transition:.2s}
-    .boss-wrap.show{opacity:1}.boss-name{text-align:center;font-size:13px;font-weight:1000;color:#ffe9bc;text-shadow:0 2px #000;margin-bottom:3px}.boss-bar{height:15px;border:3px solid #111;border-radius:99px;background:#161616;overflow:hidden;box-shadow:0 4px 8px #0008}.boss-fill{height:100%;width:100%;background:linear-gradient(90deg,#8d1721,#f04a3e,#ff9c43);transition:width .1s}
-    .wave-transition{align-items:center;justify-content:center;flex-direction:column;background:#11111199;backdrop-filter:blur(3px)}
-    .wave-transition h2{font-family:Impact,"Arial Black",sans-serif;font-size:clamp(34px,7vw,76px);margin:0;-webkit-text-stroke:2px #151515;text-shadow:0 7px 0 #9b262d,0 13px 20px #000b;animation:wavePop .65s both}
-    .wave-transition strong{font:900 clamp(38px,9vw,100px) Impact,"Arial Black",sans-serif;color:var(--gold);-webkit-text-stroke:2px #151515;text-shadow:0 7px 0 #8c5b16;animation:wavePop .55s both}
-    @keyframes load{to{width:100%}}@keyframes spinbg{to{transform:rotate(360deg)}}@keyframes floatParticle{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-45px) scale(1.7)}}@keyframes wavePop{0%{opacity:0;transform:scale(.55)}65%{opacity:1;transform:scale(1.12)}100%{transform:scale(1)}}
-    @media (pointer:coarse),(max-width:760px){.touch.playing{display:block}.controls-hint{font-size:12px}.shell{width:100vw;height:100dvh;aspect-ratio:auto;min-height:0;border:0;border-radius:0}.characters{grid-template-columns:repeat(3,1fr)}.character{min-width:0;padding:9px 5px}.character small{font-size:10px}.topbar{padding:7px;gap:6px}.box{min-width:145px;padding:5px 7px}.box.right{min-width:110px}.wave{font-size:13px;padding:4px 7px}.pause-btn{bottom:auto;top:76px;right:8px}.cards{gap:7px}.upgrade{padding:11px 8px}.upgrade small{font-size:11px}.weapon-info{bottom:8px}.inventory{left:8px;bottom:8px}.weapon-slot{width:44px;height:44px;font-size:19px}.arsenal-btn{left:8px;bottom:59px}.boss-wrap{top:62px}.arsenal-grid{grid-template-columns:repeat(2,1fr)}}
-    @media (max-width:590px){.characters{gap:6px}.tomato-icon{font-size:30px}.character strong{font-size:12px}.subtitle{margin:10px 0 12px}.menu{padding:10px}.start{margin-top:12px;padding:10px 25px}.controls-hint{margin-top:12px}.stats{display:none}.box{min-width:125px}.cards,.arsenal-grid{grid-template-columns:1fr}.upgrade{min-height:auto}.panel{max-height:92%;overflow:auto}}
-    .menu-actions{display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap}
-    .difficulty-row{display:flex;gap:8px;justify-content:center;margin:14px 0 0}.difficulty{border:2px solid #161616;border-radius:8px;background:#252525;color:#ddd;padding:7px 13px;font-weight:900;cursor:pointer}.difficulty small{display:block;font-size:9px;color:#aaa;margin-top:2px}.difficulty.selected{border-color:var(--gold);color:#ffe29b;box-shadow:0 0 12px #ffc83d55}.difficulty.selected small{color:#ffe5a0}.shop-actions{display:flex;gap:10px;justify-content:center;margin-top:14px}.reroll{margin:0;padding:9px 18px;font-size:14px;background:linear-gradient(#597fa8,#34536f);box-shadow:inset 0 2px 0 #b5d7f5,0 5px 0 #203a51}.shop-offer{position:relative;min-width:0}.shop-offer .upgrade{width:100%;height:100%}.offer-lock{position:absolute;right:8px;top:8px;width:30px;height:30px;border:2px solid #171717;border-radius:7px;background:#282828;color:#ddd;cursor:pointer;font-size:14px;z-index:1}.offer-lock.locked{border-color:#ffc83d;color:#ffe49a;background:#654c19}.offer-lock:disabled{opacity:.35;cursor:not-allowed}.shop-seeds{display:inline-block;padding:5px 10px;border:2px solid #7a9b41;border-radius:999px;background:#20301c;color:#d8ff91;font-size:16px;font-weight:1000;box-shadow:0 0 14px #9ed95055}.shop-note{display:block;margin-top:8px;font-size:12px;color:#cfcfcf}.synergy{position:absolute;left:50%;top:64px;transform:translateX(-50%);font-size:11px;font-weight:900;color:#d7ff9b;text-shadow:0 2px #182413;white-space:nowrap}
-    .menu-actions .start{font-size:clamp(14px,1.8vw,20px);padding:12px 22px}
-    /* HUD arcade: contrast forte para manter a leitura mesmo quando a arena fica cheia. */
-    .topbar{grid-template-columns:minmax(255px,1fr) auto minmax(185px,1fr);padding:16px;filter:drop-shadow(0 5px 7px #0008)}
-    .player-panel{display:flex;align-items:stretch;gap:9px}
-    .portrait{width:72px;min-width:72px;border:4px solid #101010;border-radius:14px;background:linear-gradient(145deg,#4b4d4b,#1c2020);box-shadow:inset 0 0 0 3px #ffffff2c,0 5px 0 #090909;display:grid;place-items:center;--tomato-skin:#e94236}.portrait svg{width:65px;height:65px;filter:drop-shadow(0 3px 1px #0008)}
-    .box{border-color:#090909;background:linear-gradient(145deg,#3e4744f2,#151c1bdd);box-shadow:inset 0 1px 0 #ffffff26,0 5px 0 #090909,0 9px 16px #0008}
-    .player-panel .box{flex:1;display:grid;align-content:center;gap:7px}
-    .box.right{background:linear-gradient(145deg,#24332cf5,#111816e8);border-color:#090909;color:#e8f3dc}
-    .barline{font-size:11px;letter-spacing:.055em}.bar{height:16px;border-color:#070909;background:#0b1010;box-shadow:inset 0 2px 5px #000}.fill{background:linear-gradient(90deg,#b51626,#ff4f46 58%,#ff8973);box-shadow:inset 0 2px 0 #fff5,0 0 9px #ff3f3a88}.fill.xp{background:linear-gradient(90deg,#178f62,#61eb7b);box-shadow:inset 0 2px 0 #fff5,0 0 9px #53ef7788}
-    .wave{border-color:#0b0b0b;background:linear-gradient(145deg,#3c4642f5,#171e1df0);padding:8px 20px;letter-spacing:.06em;box-shadow:inset 0 1px 0 #ffffff25,0 5px 0 #080909,0 9px 15px #0009}.wave b{color:#fff3c6;text-shadow:0 2px 0 #4b2918}
-    .wave{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:174px;padding:6px 18px 4px;line-height:1}.wave-label{font-size:15px}.wave-timer{display:block;color:#fff;font:1000 34px/1 Impact,"Arial Black",sans-serif;text-shadow:2px 3px 0 #101010,-1px -1px 0 #101010;margin-top:3px}
-    .weapon-slot{background:linear-gradient(145deg,#46504c,#151b1a);border-color:#090b0b;border-radius:11px;box-shadow:inset 0 1px 0 #ffffff24,0 5px 0 #080909,0 8px 12px #0008}.weapon-slot.common{border-color:#7b827d}.weapon-slot.uncommon{border-color:#66c765}.weapon-slot.rare{border-color:#55b9e8}.weapon-slot.epic{border-color:#c27cf1}.weapon-slot.legendary{border-color:#ffd053;box-shadow:inset 0 1px 0 #fff8,0 0 16px #ffc83d77,0 5px 0 #6e4b10}
-    .weapon-info{border-color:#0b0b0b;background:linear-gradient(145deg,#313c38f2,#121917e9);box-shadow:inset 0 1px 0 #ffffff1f,0 5px 0 #080909,0 8px 14px #0009}.arsenal-btn,.quality-btn,.pause-btn{border-color:#090b0b;background:linear-gradient(145deg,#44534aef,#18211ded);box-shadow:inset 0 1px 0 #ffffff26,0 4px 0 #080909,0 8px 12px #0008}
-    .boss-wrap{padding:7px 10px 9px;border:3px solid #120c0b;border-radius:12px;background:linear-gradient(#32201de8,#171010e8);box-shadow:inset 0 1px 0 #ffffff24,0 5px 0 #0a0707,0 10px 16px #0009}.boss-name{letter-spacing:.08em;color:#ffdfad}.boss-bar{height:16px}.boss-fill{box-shadow:0 0 12px #ff653e88}
-    .hud-spacer{min-width:170px}.status-panel{pointer-events:none;position:absolute;right:15px;top:130px;width:148px;padding:9px;border:4px solid #090b0b;border-radius:13px;background:linear-gradient(145deg,#29352ff1,#101614ed);box-shadow:inset 0 1px 0 #ffffff26,0 5px 0 #070908,0 10px 18px #0009;color:#f5f5e9}
-    .status-title{display:block;padding-bottom:6px;margin-bottom:4px;border-bottom:2px solid #ffffff19;color:#dbe9bd;font-size:10px;font-weight:1000;letter-spacing:.12em;text-align:center}.status-row{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:5px;min-height:24px;font-size:12px}.status-row i{font-style:normal;font-size:15px;text-align:center}.status-row small{color:#acb8ae;font-size:9px;font-weight:900;letter-spacing:.05em}.status-row b{font-size:13px;color:#fff;text-shadow:0 2px #000}
-    .inventory{gap:8px}.weapon-slot{width:59px;height:66px;align-content:center;transition:transform .14s,filter .14s,border-color .14s}.weapon-slot>span:first-child{font-size:25px;line-height:1}.weapon-slot small{right:4px;bottom:2px}.weapon-slot .slot-name{display:block;max-width:52px;margin-top:3px;overflow:hidden;color:#d9dfd9;font-size:8px;font-weight:900;text-overflow:ellipsis;white-space:nowrap}.weapon-slot .rarity-dot{position:absolute;left:4px;top:4px;width:7px;height:7px;border:1px solid #111;border-radius:50%;background:currentColor;box-shadow:0 0 7px currentColor}.weapon-slot.selected{border-color:#ffd34e;transform:translateY(-4px);box-shadow:inset 0 1px 0 #fff8,0 0 0 2px #7d5618,0 0 17px #ffd34e77,0 6px 0 #5d3e0b}.weapon-slot.locked{color:#858b87;filter:saturate(.3);cursor:not-allowed}.weapon-slot.locked>span:first-child{font-size:22px}.arsenal-btn{bottom:91px}.weapon-info{bottom:91px;min-width:270px}.weapon-info b{letter-spacing:.06em}.fill{transition:width .16s ease-out}.hud.show .player-panel,.hud.show .wave,.hud.show .status-panel,.hud.show .inventory{animation:hudIn .35s ease-out both}.hud.show .wave{animation-delay:.04s}.hud.show .status-panel{animation-delay:.08s}.hud.show .inventory{animation-delay:.12s}
-    @media (pointer:coarse),(max-width:760px){.topbar{grid-template-columns:1fr auto 1fr;padding:8px}.portrait{width:52px;min-width:52px;border-radius:11px;font-size:32px}.player-panel{gap:6px}.player-panel .box{gap:3px}.barline{font-size:9px}.box.right{min-width:110px}}
-    @media (max-width:760px){.status-panel{right:7px;top:126px;width:112px;padding:6px}.status-title,.status-row small{display:none}.status-row{grid-template-columns:20px 1fr;min-height:21px}.status-row b{text-align:right}.hud-spacer{min-width:112px}.weapon-slot{width:44px;height:50px}.weapon-slot .slot-name{display:none}.arsenal-btn{bottom:65px}.weapon-info{bottom:65px;min-width:210px}}
-    @media (max-width:590px){.portrait{display:none}.status-panel{display:none}.hud-spacer{min-width:55px}.inventory{gap:4px}.weapon-slot{width:37px;height:45px}.weapon-slot>span:first-child{font-size:19px}.weapon-info{bottom:60px}.arsenal-btn{bottom:115px}}
-    @media (pointer:coarse),(max-width:760px){.shell{background:#141b17}.shell #game{position:absolute;left:50%;top:50%;width:min(100%,177.7778dvh);height:auto;aspect-ratio:16/9;transform:translate(-50%,-50%);background:#1b251b}}
-    .box,.wave,.status-panel,.weapon-info,.weapon-slot,.quality-btn,.pause-btn{background-color:#1b1d1d}.wave,.status-panel,.weapon-info{border-color:#0a0a0b}
-    .quality-btn{right:224px;bottom:64px}.pause-btn{right:224px;bottom:13px}
-    @media (max-width:760px){.quality-btn{right:8px;bottom:auto;top:126px}.pause-btn{right:8px;bottom:auto;top:76px}.wave{min-width:105px;padding:5px 8px}.wave-label{font-size:11px}.wave-timer{font-size:25px}}
-    @media (max-width:590px){.wave{min-width:80px}.wave-label{font-size:10px}.wave-timer{font-size:22px}}
-    /* Gameplay primeiro: HUD compacto, agrupado nas margens e com uma área central livre. */
-    .topbar{grid-template-columns:minmax(190px,1fr) auto minmax(118px,1fr);gap:8px;padding:9px 11px}.player-panel{gap:6px}.portrait{width:54px;min-width:54px;border-width:3px;border-radius:10px}.portrait svg{width:48px;height:48px}.box{min-width:164px;padding:6px 8px;border-width:3px;border-radius:9px}.player-panel .box{gap:4px}.barline{gap:5px;font-size:10px}.bar{height:11px;min-width:70px}.wave{min-width:126px;padding:5px 11px;border-width:3px;border-radius:9px}.wave-label{font-size:13px}.wave-timer{font-size:29px;margin-top:1px}.hud-spacer{min-width:118px}
-    .status-panel{right:11px;top:clamp(116px,9.1vw,230px);width:116px;padding:6px;border-width:3px;border-radius:10px;background:linear-gradient(145deg,#25302be8,#111816df);box-shadow:inset 0 1px 0 #ffffff1c,0 3px 0 #070908,0 7px 13px #0008}.status-title{padding-bottom:4px;margin-bottom:2px;font-size:8px}.status-row{grid-template-columns:16px 1fr auto;gap:3px;min-height:18px;font-size:10px}.status-row i{font-size:12px}.status-row small{font-size:7px}.status-row b{font-size:10px}
-    .inventory{left:50%;bottom:11px;gap:5px;transform:translateX(-50%)}.weapon-slot{width:48px;height:53px;border-width:2px;border-radius:8px;box-shadow:inset 0 1px 0 #ffffff20,0 3px 0 #080909,0 6px 10px #0008}.weapon-slot>span:first-child{font-size:21px}.weapon-slot .slot-name{display:none}.weapon-slot small{right:3px;bottom:1px;font-size:8px}.weapon-slot .rarity-dot{left:3px;top:3px;width:5px;height:5px}.weapon-slot.selected{transform:translateY(-3px);box-shadow:inset 0 1px 0 #fff8,0 0 0 1px #7d5618,0 0 12px #ffd34e66,0 4px 0 #5d3e0b}.weapon-slot.locked{opacity:.42;filter:saturate(.15)}.weapon-slot.locked>span:first-child{font-size:16px}.arsenal-btn{left:calc(50% + 165px);bottom:17px;padding:6px 8px;border-width:2px;border-radius:7px;font-size:10px;box-shadow:inset 0 1px 0 #ffffff22,0 3px 0 #080909}.weapon-info{bottom:72px;min-width:210px;padding:5px 9px;border-width:2px;border-radius:8px;font-size:9px;box-shadow:inset 0 1px 0 #ffffff1f,0 3px 0 #080909}.weapon-info b{font-size:11px}.quality-btn,.pause-btn{right:11px;width:34px;height:34px;border-width:2px;border-radius:8px;box-shadow:inset 0 1px 0 #ffffff22,0 3px 0 #080909,0 5px 9px #0008}.pause-btn{bottom:10px;font-size:16px}.quality-btn{bottom:49px;font-size:10px}.synergy{top:53px;font-size:9px}.boss-wrap{top:54px;width:min(360px,47%)}
-    @media (max-width:760px){.topbar{padding:7px;grid-template-columns:1fr auto 1fr}.portrait{width:48px;min-width:48px}.box{min-width:130px}.wave{min-width:92px}.status-panel{top:105px;right:7px;width:103px}.inventory{left:7px;transform:none;bottom:8px}.weapon-slot{width:40px;height:45px}.arsenal-btn{left:7px;bottom:59px}.weapon-info{bottom:60px;min-width:190px}.quality-btn{right:7px;top:104px;bottom:auto}.pause-btn{right:7px;top:64px;bottom:auto}}
-    @media (max-width:590px){.inventory{gap:3px}.weapon-slot{width:35px;height:42px}.arsenal-btn{font-size:9px}.weapon-info{bottom:57px}.wave{min-width:78px}.status-panel{display:none}}
-    /* cqw acompanha a .shell, não o monitor: radar Canvas e HUD HTML ficam alinhados em ultrawide. */
-    @media (min-width:761px){
-      .topbar{padding:clamp(8px,.47cqw,11px);gap:clamp(6px,.42cqw,9px)}.portrait{width:clamp(44px,2.8cqw,64px);min-width:clamp(44px,2.8cqw,64px)}.portrait svg{width:88%;height:88%}.box{min-width:clamp(145px,8.55cqw,196px);padding:clamp(5px,.35cqw,8px)}.barline{font-size:clamp(9px,.53cqw,12px)}.bar{height:clamp(10px,.58cqw,13px)}.wave{min-width:clamp(108px,6.56cqw,151px);padding:clamp(4px,.3cqw,7px) clamp(8px,.57cqw,13px)}.wave-label{font-size:clamp(11px,.68cqw,16px)}.wave-timer{font-size:clamp(24px,1.51cqw,35px)}
-      .status-panel{right:.57cqw;top:9.25cqw;width:6.05cqw;padding:.31cqw;border-width:clamp(2px,.16cqw,3px);border-radius:clamp(8px,.52cqw,11px)}.status-title{font-size:clamp(7px,.42cqw,10px)}.status-row{grid-template-columns:clamp(14px,.84cqw,19px) 1fr auto;gap:.16cqw;min-height:clamp(16px,.94cqw,22px);font-size:clamp(9px,.52cqw,12px)}.status-row i{font-size:clamp(11px,.68cqw,15px)}.status-row small{font-size:clamp(6px,.36cqw,8px)}.status-row b{font-size:clamp(9px,.52cqw,12px)}
-    }
-    /* Fluxo compartilhado: o radar e os atributos não usam escalas independentes. */
-    .hud-sidebar{position:absolute;right:10px;top:10px;width:clamp(132px,11.25cqw,216px);display:grid;gap:6px}
-    .hud-sidebar #radar{display:block;width:100%;height:auto;aspect-ratio:108/76;background:transparent}
-    .hud-sidebar .status-panel{position:static;width:100%;padding:6px;border-width:2px}
-    .hud-sidebar .status-row{grid-template-columns:18px minmax(0,1fr) auto;min-height:19px}.hud-sidebar .status-row small{font-size:8px}.hud-sidebar .status-row b{font-size:11px}
-    .hud-center{display:grid;justify-items:center;gap:4px;max-width:340px}.hud-center .synergy{position:static;transform:none;white-space:normal;text-align:center;font-size:10px}.synergy:empty{display:none}
-    .hud-center .boss-wrap{position:static;transform:none;display:none;width:100%;min-width:190px;padding:5px 7px}.hud-center .boss-wrap.show{display:block}
-    @keyframes hudIn{from{opacity:0}to{opacity:1}}
-    .notice{max-width:80%;white-space:normal;text-align:center;overflow-wrap:anywhere}
-    @media (max-width:760px){.hud-sidebar{width:105px;top:7px;right:7px}.hud-center{max-width:160px}.quality-btn{top:auto;bottom:49px}.pause-btn{top:auto;bottom:10px}}
-    @media (max-width:590px){.hud-sidebar{width:85px}.hud-center .boss-wrap{min-width:130px}.hud-sidebar .status-panel{display:none}}
-  </style>
+  <link rel="stylesheet" href="./css/game.css">
 </head>
 <body>
   <main class="shell" id="shell">
@@ -192,7 +38,7 @@
       </div>
       <div class="menu-actions"><button class="start" id="startBtn">Plantar o caos</button></div>
       <div class="difficulty-row" aria-label="Dificuldade"><button class="difficulty" data-difficulty="easy" title="Inimigos mais lentos e fracos">FÁCIL<small>Para aprender</small></button><button class="difficulty selected" data-difficulty="normal" title="Experiência recomendada">NORMAL<small>Recomendado</small></button><button class="difficulty" data-difficulty="hard" title="Inimigos mais rápidos e resistentes">DIFÍCIL<small>Para veteranos</small></button></div>
-      <p class="controls-hint">WASD ou setas para mover • Espaço para arrancada • E para arsenal • P para pausar</p>
+      <p class="controls-hint">Mouse para mirar • Clique/segure para atacar • WASD ou setas para mover • Espaço para arrancada • E para arsenal • P para pausar</p>
     </section>
 
     <section class="hud" id="hud" aria-live="polite">
@@ -272,7 +118,7 @@
       <div class="panel end-panel"><span class="big-tomato" id="endIcon">🍅</span><h2 id="endTitle">A horta foi salva!</h2><p id="endMessage">Você venceu as vinte ondas.</p><div class="end-stats"><span>Abates <b id="endKills">0</b></span><span>Nível <b id="endLevel">1</b></span><span>Sementes <b id="endSeeds">0</b></span></div><button class="start" id="restartBtn">Jogar novamente</button></div>
     </section>
 
-    <div class="touch" id="touchControls" aria-hidden="true"><div class="stick" id="stick"><div class="knob" id="knob"></div></div><button class="dash" id="dashBtn">ARRANCADA</button></div>
+    <div class="touch" id="touchControls"><div class="stick" id="stick"><div class="knob" id="knob"></div></div><button type="button" class="dash" id="dashBtn">ARRANCADA</button></div>
     <p class="sr-only" id="statusText" aria-live="assertive"></p>
   </main>
 
@@ -280,23 +126,28 @@
   <script src="./js/audio.js"></script>
   <script src="./js/quality.js"></script>
   <script src="./js/content/addons.js"></script>
+  <script src="./js/content/weapons.js"></script>
   <script src="./js/content/enemies.js"></script>
   <script src="./js/state/player.js"></script>
   <script src="./js/combat/collision-grid.js"></script>
+  <script src="./js/combat/pointer-aim.js"></script>
   <script src="./js/render/culling.js"></script>
+  <script src="./js/render/sprite-cache.js"></script>
+  <script src="./js/render/weapon-animation.js"></script>
+  <script src="./js/render/firing-sheet.js"></script>
   <script src="./js/render/arena-decor.js"></script>
   <script src="./js/render/ui-layout.js"></script>
   <script>
   (() => {
     'use strict';
     const canvas = document.querySelector('#game');
-    const ctx = canvas.getContext('2d');
+    let ctx = canvas.getContext('2d');
     const radarContext=document.querySelector('#radar').getContext('2d');
     const GAME_CONFIG=window.TomatoConfig,{width:VW,height:VH,worldScale,cameraZoom:CAMERA_ZOOM}=GAME_CONFIG.canvas,{maxWaves:MAX_WAVES,maxWeapons:MAX_WEAPONS}=GAME_CONFIG.game,W=Math.floor(VW*worldScale),H=Math.floor(VH*worldScale),VIEW_W=VW/CAMERA_ZOOM,VIEW_H=VH/CAMERA_ZOOM;
-    let PIXEL_SCALE=1;
+    let PIXEL_SCALE=1, resolutionLimit=1.5, renderGlow=0;
     function fitCanvasResolution(){
       const cssWidth=canvas.getBoundingClientRect?.().width||VW;
-      const scale=Math.min(2,Math.max(1,cssWidth/VW*(window.devicePixelRatio||1)));
+      const scale=Math.min(resolutionLimit,Math.max(1,cssWidth/VW*(window.devicePixelRatio||1)));
       const width=Math.round(VW*scale),height=Math.round(VH*scale);
       if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height}
       PIXEL_SCALE=scale;ctx.imageSmoothingEnabled=true;
@@ -326,36 +177,7 @@
     const RARITIES = {
       common:{name:'COMUM',mult:1,color:'#a8a8a8'},uncommon:{name:'INCOMUM',mult:1.16,color:'#6dc05a'},rare:{name:'RARO',mult:1.34,color:'#4ca7e6'},epic:{name:'ÉPICO',mult:1.58,color:'#b766df'},legendary:{name:'LENDÁRIO',mult:1.9,color:'#ffb62f'}
     };
-    const WEAPONS = {
-      knife:{name:'Faca',icon:'🔪',type:'melee',damage:14,rate:.24,range:48,projectileSpeed:0,projectiles:1,crit:.18,critDamage:1.8,recoil:1,accuracy:1,size:.55,effect:'rapid',description:'Golpes muito rápidos e curtos.'},
-      dagger:{name:'Adaga',icon:'🗡️',type:'melee',damage:18,rate:.3,range:54,projectileSpeed:0,projectiles:1,crit:.24,critDamage:2,recoil:1,accuracy:1,size:.62,effect:'backstab',description:'Leve e extremamente crítica.'},
-      shortSword:{name:'Espada Curta',icon:'⚔️',type:'melee',damage:26,rate:.52,range:68,projectileSpeed:0,projectiles:1,crit:.12,critDamage:1.7,recoil:2,accuracy:1,size:.9,effect:'arc',description:'Corte em arco equilibrado.'},
-      longSword:{name:'Espada Longa',icon:'🗡️',type:'melee',damage:35,rate:.7,range:88,projectileSpeed:0,projectiles:1,crit:.1,critDamage:1.75,recoil:3,accuracy:1,size:1.15,effect:'wideArc',description:'Grande alcance e corte amplo.'},
-      katana:{name:'Katana',icon:'⚔️',type:'melee',damage:30,rate:.4,range:78,projectileSpeed:0,projectiles:1,crit:.3,critDamage:2.1,recoil:2,accuracy:1,size:.85,effect:'dashCut',description:'Rápida e focada em críticos.'},
-      heavySword:{name:'Espada Pesada',icon:'🗡️',type:'melee',damage:62,rate:1.18,range:104,projectileSpeed:0,projectiles:1,crit:.08,critDamage:2,recoil:8,accuracy:1,size:1.45,effect:'heavy',description:'Lenta, pesada e devastadora.'},
-      axe:{name:'Machado',icon:'🪓',type:'melee',damage:44,rate:.82,range:72,projectileSpeed:0,projectiles:1,crit:.16,critDamage:2,recoil:5,accuracy:1,size:1.1,effect:'cleave',description:'Alto dano em área curta.'},
-      doubleAxe:{name:'Machado Duplo',icon:'🪓',type:'melee',damage:32,rate:.58,range:76,projectileSpeed:0,projectiles:2,crit:.14,critDamage:1.9,recoil:4,accuracy:1,size:1.05,effect:'spin',description:'Dois cortes em rotação.'},
-      spear:{name:'Lança',icon:'🔱',type:'melee',damage:38,rate:.67,range:116,projectileSpeed:0,projectiles:1,crit:.12,critDamage:1.8,recoil:4,accuracy:1,size:.8,effect:'thrust',description:'Ataque estreito de grande alcance.'},
-      hammer:{name:'Martelo',icon:'🔨',type:'melee',damage:58,rate:1.05,range:82,projectileSpeed:0,projectiles:1,crit:.08,critDamage:1.8,recoil:10,accuracy:1,size:1.4,effect:'knockback',description:'Golpe pesado que empurra inimigos.'},
-      pistol:{name:'Pistola',icon:'🔫',type:'ranged',damage:18,rate:.48,range:560,projectileSpeed:520,projectiles:1,crit:.1,critDamage:1.8,recoil:2,accuracy:.97,size:1,effect:'balanced',description:'Tiros precisos e equilibrados.'},
-      autoPistol:{name:'Pistola Automática',icon:'🔫',type:'ranged',damage:10,rate:.19,range:500,projectileSpeed:510,projectiles:1,crit:.07,critDamage:1.7,recoil:2,accuracy:.91,size:.82,effect:'automatic',description:'Cadência alta e dano leve.'},
-      revolver:{name:'Revólver',icon:'🔫',type:'ranged',damage:42,rate:.85,range:650,projectileSpeed:610,projectiles:1,crit:.16,critDamage:2.1,recoil:7,accuracy:.98,size:1.2,effect:'heavyShot',description:'Lento, preciso e muito forte.'},
-      smg:{name:'Submetralhadora',icon:'🔫',type:'ranged',damage:7,rate:.1,range:430,projectileSpeed:500,projectiles:1,crit:.05,critDamage:1.6,recoil:2,accuracy:.82,size:.72,effect:'spray',description:'Chuva rápida de projéteis.'},
-      shotgun:{name:'Escopeta',icon:'💥',type:'ranged',damage:10,rate:.92,range:310,projectileSpeed:440,projectiles:6,crit:.06,critDamage:1.7,recoil:10,accuracy:.62,size:.8,effect:'pellets',description:'Cone de vários projéteis.'},
-      autoShotgun:{name:'Escopeta Automática',icon:'💥',type:'ranged',damage:7,rate:.43,range:280,projectileSpeed:430,projectiles:5,crit:.05,critDamage:1.6,recoil:8,accuracy:.57,size:.72,effect:'autoPellets',description:'Cones rápidos em sequência.'},
-      rifle:{name:'Rifle',icon:'🎯',type:'ranged',damage:30,rate:.6,range:760,projectileSpeed:760,projectiles:1,crit:.18,critDamage:2,recoil:5,accuracy:.99,size:1,effect:'pierce',description:'Preciso e capaz de atravessar.'},
-      assaultRifle:{name:'Fuzil de Assalto',icon:'🔫',type:'ranged',damage:14,rate:.16,range:620,projectileSpeed:650,projectiles:1,crit:.09,critDamage:1.75,recoil:3,accuracy:.88,size:.82,effect:'burst',description:'Cadência alta e bom alcance.'},
-      sniper:{name:'Rifle de Precisão',icon:'🎯',type:'ranged',damage:92,rate:1.45,range:980,projectileSpeed:980,projectiles:1,crit:.28,critDamage:2.5,recoil:14,accuracy:1,size:1.35,effect:'superPierce',description:'Tiro devastador que atravessa alvos.'},
-      machineGun:{name:'Metralhadora',icon:'🔥',type:'ranged',damage:8,rate:.075,range:560,projectileSpeed:610,projectiles:1,crit:.04,critDamage:1.6,recoil:3,accuracy:.7,size:.7,effect:'barrage',description:'Muitos tiros com baixa precisão.'},
-      cleaver:{name:'Cutelo de Cozinha',icon:'🔪',type:'melee',damage:48,rate:.76,range:70,projectileSpeed:0,projectiles:1,crit:.12,critDamage:1.9,recoil:5,accuracy:1,size:1.2,effect:'cleave',description:'Lâmina larga com alto dano próximo.'},
-      scythe:{name:'Foice da Colheita',icon:'🌙',type:'melee',damage:54,rate:.92,range:102,projectileSpeed:0,projectiles:1,crit:.15,critDamage:2,recoil:6,accuracy:1,size:1.3,effect:'wideArc',description:'Varre uma área enorme ao redor.'},
-      trident:{name:'Tridente de Irrigação',icon:'🔱',type:'melee',damage:43,rate:.64,range:124,projectileSpeed:0,projectiles:1,crit:.14,critDamage:1.9,recoil:4,accuracy:1,size:.9,effect:'thrust',description:'Três pontas e alcance excepcional.'},
-      chainsaw:{name:'Motosserra de Poda',icon:'⚙️',type:'melee',damage:13,rate:.11,range:60,projectileSpeed:0,projectiles:1,crit:.06,critDamage:1.6,recoil:2,accuracy:1,size:1.05,effect:'rapid',description:'Dano contínuo em golpes muito rápidos.'},
-      plasmaPistol:{name:'Pistola de Plasma',icon:'🔷',type:'ranged',damage:27,rate:.42,range:610,projectileSpeed:680,projectiles:1,crit:.13,critDamage:1.9,recoil:3,accuracy:.96,size:1.15,effect:'plasma',description:'Disparos rápidos, brilhantes e precisos.'},
-      crossbow:{name:'Besta de Espinhos',icon:'🏹',type:'ranged',damage:52,rate:.88,range:750,projectileSpeed:720,projectiles:1,crit:.22,critDamage:2.15,recoil:5,accuracy:.99,size:1.1,effect:'pierce',description:'Virotes fortes que atravessam inimigos.'},
-      grenadeLauncher:{name:'Lança-Granadas',icon:'💣',type:'ranged',damage:58,rate:1.18,range:520,projectileSpeed:350,projectiles:1,crit:.06,critDamage:1.7,recoil:12,accuracy:.9,size:1.7,effect:'explosiveRound',description:'Explode e causa dano em uma área.'},
-      flamethrower:{name:'Lança-Chamas',icon:'🔥',type:'ranged',damage:6,rate:.16,range:235,projectileSpeed:330,projectiles:5,crit:.04,critDamage:1.5,recoil:2,accuracy:.68,size:.72,effect:'flame',description:'Cone de fogo contínuo em curto alcance.'}
-    };
+    const WEAPONS = window.TomatoContent.catalog;
     const dashButton=$('#dashBtn'),hudObstacles=['.player-panel','.hud-center','.hud-sidebar','.inventory','.arsenal-btn','.weapon-info','.quality-btn','.pause-btn'].map($);
     let hudBlockers=[];
     function refreshHudLayout(){
@@ -368,34 +190,19 @@
     }
     addEventListener('resize',refreshHudLayout);
     Object.assign(WEAPONS,window.TomatoContent.weapons);
-    Object.assign(WEAPONS,{
-      gardenFork:{name:'Garfo de Jardim',icon:'🍴',type:'melee',damage:28,rate:.46,range:82,projectileSpeed:0,projectiles:1,crit:.16,critDamage:1.9,recoil:3,accuracy:1,size:.85,effect:'thrust',description:'Perfura pragas a uma boa distância.'},
-      pruningShears:{name:'Tesoura de Poda',icon:'✂️',type:'melee',damage:22,rate:.27,range:54,projectileSpeed:0,projectiles:1,crit:.24,critDamage:2.05,recoil:2,accuracy:1,size:.7,effect:'rapid',description:'Cortes rápidos com alta chance crítica.'},
-      hoe:{name:'Enxada Pesada',icon:'⛏️',type:'melee',damage:68,rate:1.25,range:94,projectileSpeed:0,projectiles:1,crit:.06,critDamage:1.8,recoil:11,accuracy:1,size:1.5,effect:'knockback',description:'Golpe lento que abre espaço na multidão.'},
-      rake:{name:'Rastelo',icon:'🪴',type:'melee',damage:34,rate:.58,range:110,projectileSpeed:0,projectiles:1,crit:.1,critDamage:1.8,recoil:4,accuracy:1,size:1.1,effect:'wideArc',description:'Varre uma grande faixa de inimigos.'},
-      gardenWhip:{name:'Chicote de Cipó',icon:'🌿',type:'melee',damage:31,rate:.5,range:128,projectileSpeed:0,projectiles:1,crit:.14,critDamage:1.95,recoil:3,accuracy:1,size:.8,effect:'thrust',description:'Alcance longo e ataque preciso.'},
-      fryingPan:{name:'Frigideira',icon:'🍳',type:'melee',damage:52,rate:.84,range:72,projectileSpeed:0,projectiles:1,crit:.1,critDamage:2,recoil:8,accuracy:1,size:1.25,effect:'heavy',description:'Uma pancada forte e confiável.'},
-      broom:{name:'Vassoura Espinhosa',icon:'🧹',type:'melee',damage:24,rate:.34,range:96,projectileSpeed:0,projectiles:1,crit:.12,critDamage:1.75,recoil:3,accuracy:1,size:.95,effect:'spin',description:'Gira para afastar pragas próximas.'},
-      rollingPin:{name:'Rolo de Massa',icon:'🥖',type:'melee',damage:47,rate:.72,range:78,projectileSpeed:0,projectiles:1,crit:.09,critDamage:1.8,recoil:7,accuracy:1,size:1.2,effect:'cleave',description:'Corte amplo com muito impacto.'},
-      umbrella:{name:'Guarda-Chuva',icon:'☂️',type:'melee',damage:38,rate:.64,range:116,projectileSpeed:0,projectiles:1,crit:.13,critDamage:1.85,recoil:4,accuracy:1,size:1,effect:'wideArc',description:'Protege a horta em um arco enorme.'},
-      shovel:{name:'Pá de Compostagem',icon:'🪏',type:'melee',damage:60,rate:1.02,range:88,projectileSpeed:0,projectiles:1,crit:.08,critDamage:1.9,recoil:9,accuracy:1,size:1.35,effect:'knockback',description:'Empurra inimigos com terra e força.'},
-      peaShooter:{name:'Atirador de Ervilhas',icon:'🫛',type:'ranged',damage:12,rate:.22,range:520,projectileSpeed:520,projectiles:2,crit:.08,critDamage:1.7,recoil:2,accuracy:.88,size:.78,effect:'balanced',description:'Duas ervilhas constantes para limpar grupos.'},
-      seedCannon:{name:'Canhão de Sementes',icon:'🌱',type:'ranged',damage:45,rate:1.05,range:500,projectileSpeed:390,projectiles:1,crit:.1,critDamage:1.8,recoil:11,accuracy:.86,size:1.5,effect:'explosiveRound',description:'Sementes explosivas de grande impacto.'},
-      waterGun:{name:'Esguicho de Água',icon:'💦',type:'ranged',damage:9,rate:.13,range:380,projectileSpeed:500,projectiles:3,crit:.05,critDamage:1.55,recoil:1,accuracy:.74,size:.7,effect:'plasma',description:'Rajada rápida que desacelera inimigos.'},
-      leafBlower:{name:'Soprador de Folhas',icon:'🍃',type:'ranged',damage:8,rate:.12,range:280,projectileSpeed:430,projectiles:5,crit:.04,critDamage:1.5,recoil:2,accuracy:.6,size:.65,effect:'spray',description:'Nuvem curta de folhas cortantes.'},
-      nailGun:{name:'Pistola de Pregos',icon:'🔩',type:'ranged',damage:16,rate:.18,range:560,projectileSpeed:690,projectiles:1,crit:.1,critDamage:1.8,recoil:3,accuracy:.9,size:.82,effect:'pierce',description:'Pregos velozes que atravessam inimigos.'},
-      slingshot:{name:'Estilingue',icon:'🎯',type:'ranged',damage:26,rate:.5,range:650,projectileSpeed:590,projectiles:1,crit:.18,critDamage:2.05,recoil:4,accuracy:.95,size:1,effect:'balanced',description:'Pedras precisas com bom dano crítico.'},
-      bubbleBlaster:{name:'Lança-Bolhas',icon:'🫧',type:'ranged',damage:11,rate:.19,range:440,projectileSpeed:430,projectiles:4,crit:.06,critDamage:1.6,recoil:1,accuracy:.72,size:.95,effect:'plasma',description:'Bolhas lentas que deixam pragas mais lentas.'},
-      thornSprayer:{name:'Borrifador de Espinhos',icon:'🌵',type:'ranged',damage:14,rate:.25,range:470,projectileSpeed:560,projectiles:3,crit:.1,critDamage:1.75,recoil:3,accuracy:.8,size:.86,effect:'pierce',description:'Três espinhos que perfuram a linha inimiga.'},
-      solarRay:{name:'Raio Solar',icon:'☀️',type:'ranged',damage:34,rate:.68,range:720,projectileSpeed:820,projectiles:1,crit:.16,critDamage:2,recoil:5,accuracy:.99,size:1.1,effect:'superPierce',description:'Feixe luminoso de longo alcance.'},
-      compostMortar:{name:'Morteiro de Composto',icon:'🪣',type:'ranged',damage:72,rate:1.4,range:540,projectileSpeed:300,projectiles:1,crit:.05,critDamage:1.7,recoil:14,accuracy:.84,size:1.8,effect:'explosiveRound',description:'Projétil pesado que explode em uma área.'}
-    });
+    // Catálogo em js/content/weapons.js.
     const weaponIds=Object.keys(WEAPONS);
-    const WEAPON_SPRITE_PATH='./assets/weapons/';
-    const weaponSprites=Object.fromEntries(Object.keys(WEAPONS).map(id=>{
-      const image=typeof Image==='function'?new Image():null;if(image){image.decoding='async';image.src=`${WEAPON_SPRITE_PATH}${id}.png`};return [id,image];
-    }));
-    const weaponSpriteUrl=id=>`${WEAPON_SPRITE_PATH}${id}.png`;
+    const spriteCache=window.TomatoRender.createSpriteCache(192),weaponIcons=new Map();
+    function paintSprite(g,paint){const previous=ctx;ctx=g;try{paint()}finally{ctx=previous}}
+    function weaponSpriteUrl(id){
+      if(!weaponIcons.has(id)){
+        const sprite=document.createElement('canvas');sprite.width=160;sprite.height=96;
+        const g=sprite.getContext('2d');g.translate(35,48);g.scale(1.6,1.6);
+        paintSprite(g,()=>drawWeaponShape({id,rarity:'common',spinFrame:0},WEAPONS[id]));
+        weaponIcons.set(id,sprite.toDataURL?sprite.toDataURL():'');
+      }
+      return weaponIcons.get(id);
+    }
     const EVOLUTIONS={shortSword:{name:'Espada Infernal',mult:1.38,effect:'wideArc'},pistol:{name:'Dual Pistols',mult:1.18,projectiles:1},rifle:{name:'Rifle de Plasma',mult:1.45,projectiles:1,effect:'superPierce'},knife:{name:'Lâminas Gêmeas',mult:1.3,projectiles:1},hammer:{name:'Martelo Sísmico',mult:1.5,effect:'knockback'}};
     const BOSS_TYPES = [
       {kind:'rotKing',name:'REI DA PODRIDÃO',hp:3000,r:44,speed:38,damage:31,color:'#713449',xp:78,pattern:'radial'},
@@ -455,6 +262,8 @@
     let bossSpawned=false,cleanupAnnounced=false,screenShake=0,nickname='Tomate',inventorySignature='',selectedWeaponIndex=0,pendingWeapon=null,arsenalReturnMode='playing',projectileUpgradeOffers=0,basePower=1,miniBossWave=false,miniBossSpawned=false,shopRerolls=0,shopItems=[];
     let hazards=[];
     let keys = {}, touchVec = {x:0,y:0};
+    const aimInput=window.TomatoCombat.createPointerAim({canvas,width:VW,height:VH,isPlaying:()=>mode==='playing'});
+    const touchAutoAim=window.matchMedia('(pointer:coarse)').matches;
     let runId=0,countdownTimer=null,loadingReadyTimer=null,nickFocusTimer=null,afterArsenal=null;
     const runTimeouts=new Set();
     function runLater(callback,ms){const run=runId,id=setTimeout(()=>{runTimeouts.delete(id);if(run===runId)callback()},ms);runTimeouts.add(id);return id}
@@ -472,14 +281,17 @@
     const AudioManager=window.TomatoAudio.createManager(rand);
     const soundLast={};const sound=type=>{const now=performance.now(),minGap=type==='shoot'?55:type==='hit'?38:type==='xp'?65:0;if(minGap&&now-(soundLast[type]||0)<minGap)return;soundLast[type]=now;AudioManager.play(type)};
 
-    function createWeapon(id,rarity='common',level=1){return{id,rarity,level,cooldown:0,recoil:0,angle:0,swing:0}}
+    function createWeapon(id,rarity='common',level=1){return{id,rarity,level,cooldown:0,recoil:0,angle:0,swing:0,mountIndex:0,shotAge:Infinity}}
+    let synergyCache=null,synergyIds=[];
+    const statsCache=new WeakMap();
     function synergyState(){
       if(!player)return {melee:false,ranged:false,garden:false,seedBonus:0,label:''};
-      const ids=player.weapons.map(w=>w.id),melee=ids.filter(id=>WEAPONS[id].type==='melee').length,ranged=ids.length-melee,garden=ids.filter(id=>['spear','trident','crossbow','flamethrower','plasmaPistol'].includes(id)).length;
+      if(synergyCache&&synergyIds.length===player.weapons.length&&player.weapons.every((w,i)=>w.id===synergyIds[i]))return synergyCache;
+      const ids=synergyIds=player.weapons.map(w=>w.id),melee=ids.filter(id=>WEAPONS[id].type==='melee').length,ranged=ids.length-melee,garden=ids.filter(id=>['spear','trident','crossbow','flamethrower','plasmaPistol'].includes(id)).length;
       const labels=[];if(melee>=3)labels.push('LÂMINAS: +15% alcance');if(ranged>=3)labels.push('BARRAGEM: +18% cadência');if(garden>=3)labels.push('HORTA: +15% dano e sementes');
-      return {melee:melee>=3,ranged:ranged>=3,garden:garden>=3,seedBonus:garden>=3?.15:0,label:labels.join('  •  ')}
+      return synergyCache={melee:melee>=3,ranged:ranged>=3,garden:garden>=3,seedBonus:garden>=3?.15:0,label:labels.join('  •  ')}
     }
-    function weaponStats(w){const b=WEAPONS[w.id],r=RARITIES[w.rarity],levelMult=1+(w.level-1)*.14,e=w.level>=5?EVOLUTIONS[w.id]:null,syn=synergyState();return{...b,name:e?.name||b.name,effect:e?.effect||b.effect,projectiles:b.projectiles+(e?.projectiles||0),damage:b.damage*r.mult*levelMult*(e?.mult||1)*(syn.garden?1.15:1),range:b.range*(syn.melee?1.15:1),rate:b.rate/Math.min(1.75,1+(w.level-1)*.06)*(syn.ranged?.82:1)}}
+    function weaponStats(w){const b=WEAPONS[w.id],r=RARITIES[w.rarity],levelMult=1+(w.level-1)*.14,e=w.level>=5?EVOLUTIONS[w.id]:null,syn=synergyState(),cached=statsCache.get(w);if(cached&&cached.id===w.id&&cached.rarity===w.rarity&&cached.level===w.level&&cached.syn===syn)return cached.value;const value={...b,name:e?.name||b.name,effect:e?.effect||b.effect,projectiles:b.projectiles+(e?.projectiles||0),damage:b.damage*r.mult*levelMult*(e?.mult||1)*(syn.garden?1.15:1),range:b.range*(syn.melee?1.15:1),rate:b.rate/Math.min(1.75,1+(w.level-1)*.06)*(syn.ranged?.82:1)};statsCache.set(w,{id:w.id,rarity:w.rarity,level:w.level,syn,value});return value}
     function estimateWeaponPower(w){const s=weaponStats(w),proj=s.type==='ranged'?Math.min(10,s.projectiles+player.projectiles):1,atkPerSec=player.attackSpeed/s.rate;return s.damage*player.damage*proj*atkPerSec}
     function estimatePlayerPower(){if(!player||!player.weapons.length)return 1;return player.weapons.reduce((sum,w)=>sum+estimateWeaponPower(w),0)}
     function difficultyScale(exp=.8,minC=.6,maxC=4.2){if(!player)return 1;const ratio=estimatePlayerPower()/Math.max(1,basePower);return clamp(Math.pow(Math.max(.05,ratio),exp),minC,maxC)}
@@ -499,7 +311,7 @@
       inventorySignature='';updateInventory();
     }
     function openArsenal(candidate=null){
-      if(!player||!['playing','shop','paused'].includes(mode))return;arsenalReturnMode=mode;pendingWeapon=candidate;mode='arsenal';ui.arsenal.classList.add('show');renderArsenal();sound('click');
+      if(!player||!['playing','shop','paused'].includes(mode))return;arsenalReturnMode=mode;pendingWeapon=candidate;mode='arsenal';aimInput.reset();ui.arsenal.classList.add('show');renderArsenal();sound('click');
     }
     function closeArsenal(){
       if(mode!=='arsenal')return;pendingWeapon=null;ui.arsenal.classList.remove('show');mode=arsenalReturnMode;last=performance.now();acc=0;updateHud();const complete=afterArsenal;afterArsenal=null;if(complete)complete();
@@ -586,10 +398,11 @@
     function projectileVisual(id,crit){
       if(crit)return{kind:'crit',color:'#ffd64e'};
       const visuals={peaShooter:{kind:'pea',color:'#a8e85c'},seedCannon:{kind:'seed',color:'#c99a4d'},compostMortar:{kind:'compost',color:'#6b5135'},waterGun:{kind:'water',color:'#65dfff'},leafBlower:{kind:'leaf',color:'#a7dc58'},nailGun:{kind:'nail',color:'#c7d0d1'},slingshot:{kind:'stone',color:'#9d8d78'},bubbleBlaster:{kind:'bubble',color:'#b6ecff'},thornSprayer:{kind:'thorn',color:'#78b94b'},solarRay:{kind:'solar',color:'#fff0a5'},plasmaPistol:{kind:'plasma',color:'#70efff'},crossbow:{kind:'bolt',color:'#d6c19a'},grenadeLauncher:{kind:'grenade',color:'#819558'},flamethrower:{kind:'flame',color:'#ff713c'}};
-      return visuals[id]||{kind:'bullet',color:'#d7ed6d'};
+      return visuals[id]||{kind:'bullet',color:'#ffc34c'};
     }
     function attackWeapon(w){
-      const s=weaponStats(w),target=nearestEnemy(s.range);if(!target)return;const angle=Math.atan2(target.y-player.y,target.x-player.x);w.angle=angle;w.recoil=Math.min(1,s.recoil/14);
+      const s=weaponStats(w),target=aimInput.state.active?aimInput.world(cameraView(),CAMERA_ZOOM):nearestEnemy(s.range);if(!target)return;
+      w.shotAge=0;w.recoil=0;const pose=weaponPose(w),angle=s.type==='melee'?Math.atan2(target.y-player.y,target.x-player.x):Math.atan2(target.y-pose.y,target.x-pose.x);w.angle=angle;const muzzle=weaponMuzzle(w,pose);
       if(s.type==='melee'){
         w.swing=1;
         const arc=s.effect==='thrust'?.38:s.effect==='rapid'?.75:s.effect==='spin'?Math.PI*1.7:s.effect==='wideArc'?2.25:1.65;
@@ -597,15 +410,25 @@
         slashes.push({x:player.x,y:player.y,angle,range:s.range,arc,life:.2,maxLife:.2,damage,crit,knock,color:crit?'#ffd65a':'#f5f0df',width:8+s.size*8,hits:new Set(),effect:s.effect});sound('slash');if(s.recoil>=8)screenShake=.1;
       }else{
         const count=Math.min(10,s.projectiles+player.projectiles),baseSpread=(1-s.accuracy)*(s.effect.toLowerCase().includes('pellets')?.9:s.effect==='flame'?1.15:.55);
-        for(let i=0;i<count&&bullets.length<quality.profile().bullets;i++){const offset=count===1?rand(-baseSpread,baseSpread):(i-(count-1)/2)*(baseSpread*1.25)+rand(-baseSpread*.18,baseSpread*.18),a=angle+offset,crit=Math.random()<s.crit+player.crit,damage=s.damage*player.damage*(crit?s.critDamage+player.critDamage:1),speed=s.projectileSpeed*player.projectileSpeed;
-          const visual=projectileVisual(w.id,crit);bullets.push({x:player.x+Math.cos(a)*23,y:player.y+Math.sin(a)*23,lastX:player.x,lastY:player.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,r:(3.2+s.size)*player.bulletSize,damage,crit,life:s.range/speed,pierce:s.effect==='superPierce'?5:s.effect==='pierce'?2:0,knock:s.recoil*.8,explosive:s.effect==='explosiveRound',flame:s.effect==='flame',slow:s.effect==='plasma',color:visual.color,visual:visual.kind,angle:a});
+        for(let i=0;i<count&&bullets.length<quality.profile().bullets;i++){const offset=count===1?0:(i-(count-1)/2)*(baseSpread*1.25)+rand(-baseSpread*.18,baseSpread*.18),a=angle+offset,crit=Math.random()<s.crit+player.crit,damage=s.damage*player.damage*(crit?s.critDamage+player.critDamage:1),speed=s.projectileSpeed*player.projectileSpeed;
+          const visual=projectileVisual(w.id,crit);bullets.push({x:muzzle.x,y:muzzle.y,lastX:muzzle.x,lastY:muzzle.y,spawnX:pose.x,spawnY:pose.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,r:(3.2+s.size)*player.bulletSize,damage,crit,life:s.range/speed,pierce:s.effect==='superPierce'?5:s.effect==='pierce'?2:0,knock:s.recoil*.8,explosive:s.effect==='explosiveRound',flame:s.effect==='flame',slow:s.effect==='plasma',color:visual.color,visual:visual.kind,angle:a});
         }
-        const mx=player.x+Math.cos(angle)*27,my=player.y+Math.sin(angle)*27,flashLife=rand(.045,.085),rapidGun=w.id==='minigun';if(muzzleFlashes.length<quality.profile().flashes)muzzleFlashes.push({x:mx,y:my,angle,life:flashLife,maxLife:flashLife,size:(rapidGun?15:10)+s.recoil*1.6,color:s.effect==='flame'?'#ff6738':'#ffe49a'});ParticleSystem.emit({x:mx,y:my,amount:Math.min(rapidGun?3:8,3+Math.round(s.recoil/2)),speed:150+s.recoil*18,direction:angle,spread:.8,gravity:90,life:.28,size:3,color:'#ffd35d',type:'spark'});if(!rapidGun||Math.random()<.22)ParticleSystem.emit({x:mx,y:my,amount:2+Math.floor(Math.random()*2),speed:26,direction:angle-Math.PI/2,spread:1.3,gravity:-12,life:.65,size:7,color:'#c7c7c7',type:'smoke'});if(['rifle','assaultRifle','sniper','machineGun','minigun'].includes(w.id)&&casings.length<45&&(!rapidGun||Math.random()<.45))casings.push({x:player.x,y:player.y,vx:-Math.sin(angle)*rand(45,80),vy:Math.cos(angle)*rand(45,80),life:.55,rot:0});if(s.recoil>=7)screenShake=Math.max(screenShake,.12);sound('shoot');
+        const mx=muzzle.x,my=muzzle.y,flashLife=rand(.045,.085),rapidGun=w.id==='minigun';if(muzzleFlashes.length<quality.profile().flashes)muzzleFlashes.push({weapon:w,x:mx,y:my,angle,life:flashLife,maxLife:flashLife,size:(rapidGun?15:10)+s.recoil*1.6,color:projectileVisual(w.id,false).color});ParticleSystem.emit({x:mx,y:my,amount:Math.min(rapidGun?3:8,3+Math.round(s.recoil/2)),speed:150+s.recoil*18,direction:angle,spread:.8,gravity:90,life:.28,size:3,color:'#ffd35d',type:'spark'});if(!rapidGun||Math.random()<.22)ParticleSystem.emit({x:mx,y:my,amount:2+Math.floor(Math.random()*2),speed:26,direction:angle-Math.PI/2,spread:1.3,gravity:-12,life:.65,size:7,color:'#c7c7c7',type:'smoke'});if(['pistol','autoPistol','revolver','smg','shotgun','autoShotgun','rifle','assaultRifle','sniper','machineGun','minigun','nailGun'].includes(w.id)&&casings.length<45&&(!rapidGun||Math.random()<.45))casings.push({x:pose.x,y:pose.y,vx:-Math.sin(angle)*rand(45,80),vy:Math.cos(angle)*rand(45,80),life:.55,rot:0});if(s.recoil>=7)screenShake=Math.max(screenShake,.12);sound('shoot');
       }
       w.cooldown+=s.rate/player.attackSpeed;
     }
-    function updateWeapons(dt){for(const w of player.weapons){w.cooldown=Math.max(0,w.cooldown)-dt;w.recoil=Math.max(0,w.recoil-dt*7);w.swing=Math.max(0,(w.swing||0)-dt*5.5);for(let shots=0;w.cooldown<=0&&shots<16;shots++){const previous=w.cooldown;attackWeapon(w);if(w.cooldown===previous){w.cooldown=0;break}}}}
-    function damageEnemy(e,amount,crit=false,knock=0,fromX=player.x,fromY=player.y){if(e.dead)return;if(e.shieldHp>0){const absorbed=Math.min(e.shieldHp,amount);e.shieldHp-=absorbed;amount-=absorbed;ParticleSystem.burst(e.x,e.y,'#70d9ff',5);if(damageNumbers.length<120)damageNumbers.push({x:e.x,y:e.y-13,value:Math.round(absorbed),crit:false,life:.55,vy:-28,shield:true});if(amount<=0)return}e.hp-=amount;e.hit=.08;const a=Math.atan2(e.y-fromY,e.x-fromX);e.x=clamp(e.x+Math.cos(a)*knock,e.r,W-e.r);e.y=clamp(e.y+Math.sin(a)*knock,e.r,H-e.r);collisionGrid.move(e);if(damageNumbers.length<120)damageNumbers.push({x:e.x+rand(-5,5),y:e.y-10,value:Math.round(amount),crit,life:.72,vy:-34});ParticleSystem.burst(e.x,e.y,crit?'#ffd24b':'#f2eacb',crit?6:3);ParticleSystem.emit({x:e.x,y:e.y,amount:crit?5:3,speed:crit?165:105,direction:a+Math.PI,spread:2.5,gravity:180,life:.42,size:crit?5:3.5,color:crit?'#ffdd59':e.color,type:'chip'});if(crit)sound('crit');if(e.hp<=0)e.dead=true}
+    function updateWeapons(dt){
+      const trigger=aimInput.consume()||(touchAutoAim&&!aimInput.state.active),target=aimInput.state.active?aimInput.world(cameraView(),CAMERA_ZOOM):null;
+      for(let i=0;i<player.weapons.length;i++){
+        const w=player.weapons[i],s=weaponStats(w);w.mountIndex=i;w.cooldown=Math.max(0,w.cooldown)-dt;
+        w.shotAge=(w.shotAge??Infinity)+dt;w.swing=Math.max(0,(w.swing||0)-dt*5.5);
+        if(target){const pose=weaponPose(w);w.angle=Math.atan2(target.y-(s.type==='melee'?player.y:pose.y),target.x-(s.type==='melee'?player.x:pose.x))}
+        const motion=window.TomatoRender.weaponAnimation(w,s,player.attackSpeed);w.recoil=motion.kick;
+        if(!trigger){w.cooldown=Math.max(0,w.cooldown);continue}
+        for(let shots=0;w.cooldown<=0&&shots<16;shots++){const previous=w.cooldown;attackWeapon(w);if(w.cooldown===previous){w.cooldown=0;break}}
+      }
+    }
+    function damageEnemy(e,amount,crit=false,knock=0,fromX=player.x,fromY=player.y){if(e.dead)return;if(e.shieldHp>0){const absorbed=Math.min(e.shieldHp,amount);e.shieldHp-=absorbed;amount-=absorbed;ParticleSystem.burst(e.x,e.y,'#70d9ff',5);if(damageNumbers.length<quality.profile().numbers)damageNumbers.push({x:e.x,y:e.y-13,value:Math.round(absorbed),crit:false,life:.55,vy:-28,shield:true});if(amount<=0)return}e.hp-=amount;e.hit=.08;const a=Math.atan2(e.y-fromY,e.x-fromX);e.x=clamp(e.x+Math.cos(a)*knock,e.r,W-e.r);e.y=clamp(e.y+Math.sin(a)*knock,e.r,H-e.r);collisionGrid.move(e);if(damageNumbers.length<quality.profile().numbers)damageNumbers.push({x:e.x+rand(-5,5),y:e.y-10,value:Math.round(amount),crit,life:.72,vy:-34});ParticleSystem.burst(e.x,e.y,crit?'#ffd24b':'#f2eacb',crit?6:3);ParticleSystem.emit({x:e.x,y:e.y,amount:crit?5:3,speed:crit?165:105,direction:a+Math.PI,spread:2.5,gravity:180,life:.42,size:crit?5:3.5,color:crit?'#ffdd59':e.color,type:'chip'});if(crit)sound('crit');if(e.hp<=0)e.dead=true}
     function processDeaths(){
       if(mode!=='playing')return;
       for(let i=enemies.length-1;i>=0;i--){
@@ -645,12 +468,12 @@
 
     function levelUp(){
       if(mode!=='playing'||player.xp<player.nextXp)return;
-      player.level++;player.xp-=player.nextXp;player.nextXp=Math.ceil(player.nextXp*1.35+3);mode='upgrade';
+      player.level++;player.xp-=player.nextXp;player.nextXp=Math.ceil(player.nextXp*1.35+3);mode='upgrade';aimInput.reset();
       const picks=shuffle([...upgradePool,weaponOffer(false),improveWeaponOffer()]).slice(0,4);if(projectileUpgradeOffers<2&&Math.random()<.03){picks[Math.floor(Math.random()*picks.length)]=projectileUpgrade;projectileUpgradeOffers++}renderChoices($('#upgradeCards'),picks,false);ui.upgrade.classList.add('show');sound('level');announce('LEVEL UP!');
     }
 
     function showBossReward(bossName,endsWave=false){
-      mode='bossReward';const powers=shuffle(bossRewardPool).slice(0,2),choices=shuffle([weaponOffer(false),weaponOffer(false),...powers]);ui.bossRewardCards.replaceChildren();$('#bossRewardTitle').textContent=`${bossName} derrotado!`;
+      mode='bossReward';aimInput.reset();const powers=shuffle(bossRewardPool).slice(0,2),choices=shuffle([weaponOffer(false),weaponOffer(false),...powers]);ui.bossRewardCards.replaceChildren();$('#bossRewardTitle').textContent=`${bossName} derrotado!`;
       choices.forEach(item=>{const b=document.createElement('button');b.className=`upgrade ${item.rarity||''}`;if(item.rarity)b.style.borderColor=RARITIES[item.rarity].color;b.innerHTML=`<span class="uicon">${item.icon}</span><strong>${item.name}</strong><small>${item.desc}</small>`;b.addEventListener('click',()=>{if(mode!=='bossReward')return;item.apply(player);ui.bossReward.classList.remove('show');inventorySignature='';updateHud();announce('PODER DE CHEFE ADQUIRIDO!');sound('level');mode='playing';last=performance.now();if(pendingWeapon){afterArsenal=endsWave?finishWave:null;openArsenal(pendingWeapon)}else if(endsWave)finishWave()});ui.bossRewardCards.append(b)});ui.bossReward.classList.add('show');sound('boss');
     }
 
@@ -695,7 +518,7 @@
 
     function finishWave(){
       if(mode!=='playing')return;clearWaveEffects();
-      mode='transition';player.poisonClock=0;player.poisonInside=false;enemies=[];const interest=Math.min(8,Math.floor(seeds*.04));seeds+=8+wave+interest;drops.forEach(d=>{player.xp+=d.value});drops=[];heals=[];ui.transition.classList.add('show');$('#transitionTitle').textContent=`ONDA ${wave} CONCLUÍDA`;$('#transitionCount').textContent=interest?`+${interest} JUROS`:'';sound('wave');
+      mode='transition';aimInput.reset();player.poisonClock=0;player.poisonInside=false;enemies=[];const interest=Math.min(8,Math.floor(seeds*.04));seeds+=8+wave+interest;drops.forEach(d=>{player.xp+=d.value});drops=[];heals=[];ui.transition.classList.add('show');$('#transitionTitle').textContent=`ONDA ${wave} CONCLUÍDA`;$('#transitionCount').textContent=interest?`+${interest} JUROS`:'';sound('wave');
       runLater(()=>{if(mode!=='transition')return;ui.transition.classList.remove('show');mode='shop';shopRerolls=0;shopItems=[];renderShop(true);ui.shop.classList.add('show');updateHud()},1050);
     }
 
@@ -753,13 +576,13 @@
     function updateBullets(dt){
       rebuildEnemyGrid();
       for(let i=bullets.length-1;i>=0;i--){
-        const b=bullets[i],travel=Math.min(dt,Math.max(0,b.life));b.lastX=b.x;b.lastY=b.y;
+        const b=bullets[i],travel=Math.min(dt,Math.max(0,b.life));b.lastX=b.spawnX??b.x;b.lastY=b.spawnY??b.y;b.spawnX=b.spawnY=undefined;
         const endX=b.x+b.vx*travel,endY=b.y+b.vy*travel;b.life-=dt;
         if(b.pierce>0)b.hits||=new Set();
         const contacts=[];
-        for(const e of collisionGrid.alongSegment(b.x,b.y,endX,endY,b.r)){
+        for(const e of collisionGrid.alongSegment(b.lastX,b.lastY,endX,endY,b.r)){
           if(e.dead||b.hits?.has(e))continue;
-          const t=window.TomatoCombat.segmentCircle(b.x,b.y,endX,endY,e.x,e.y,b.r+e.r);
+          const t=window.TomatoCombat.segmentCircle(b.lastX,b.lastY,endX,endY,e.x,e.y,b.r+e.r);
           if(t!==null)contacts.push({e,t});
         }
         contacts.sort((a,b)=>a.t-b.t);let used=false;
@@ -958,11 +781,11 @@
         // Tambor, motor e cinco canos com variação por tempo simulam a rotação da minigun.
         ctx.fillStyle='#553a2c';ctx.strokeStyle='#2a2421';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-15,-7);ctx.lineTo(5,-8);ctx.lineTo(12,8);ctx.lineTo(-16,10);ctx.closePath();ctx.fill();ctx.stroke();
         ctx.fillStyle='#4d5b5f';ctx.beginPath();ctx.roundRect(0,-12,28,24,6);ctx.fill();ctx.stroke();ctx.fillStyle='#916c37';ellipse(7,13,11,8,'#b18442','#382d25',3);
-        const spin=performance.now()*.03;ctx.strokeStyle='#9facb0';ctx.lineWidth=3.4;for(let n=0;n<5;n++){const y=Math.sin(spin+n*Math.PI*2/5)*8;ctx.beginPath();ctx.moveTo(20,y);ctx.lineTo(57,y*.72);ctx.stroke();ctx.fillStyle='#1b2225';ctx.fillRect(54,y*.72-2,7,4)}
+        const spin=(w.spinFrame||0)*Math.PI/10;ctx.strokeStyle='#9facb0';ctx.lineWidth=3.4;for(let n=0;n<5;n++){const y=Math.sin(spin+n*Math.PI*2/5)*8;ctx.beginPath();ctx.moveTo(20,y);ctx.lineTo(57,y*.72);ctx.stroke();ctx.fillStyle='#1b2225';ctx.fillRect(54,y*.72-2,7,4)}
         ellipse(20,0,9,9,'#77868b','#20282b',3);ellipse(20,0,3,3,accent,'#20282b',1.5);ctx.fillStyle='#384246';ctx.beginPath();ctx.moveTo(3,10);ctx.lineTo(17,10);ctx.lineTo(13,22);ctx.lineTo(4,18);ctx.closePath();ctx.fill();ctx.stroke();return;
       }
       if(id==='plasmaPistol'){
-        ctx.fillStyle='#3d4d86';ctx.strokeStyle='#1d2441';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(0,-9,28,18,6);ctx.fill();ctx.stroke();ctx.shadowColor='#70edff';ctx.shadowBlur=12;ellipse(13,0,7,7,'#74f1ff','#203354',2);ctx.shadowBlur=0;ctx.fillStyle='#c8faff';ctx.fillRect(25,-4,17,8);ctx.fillStyle='#40302f';ctx.beginPath();ctx.moveTo(7,8);ctx.lineTo(19,8);ctx.lineTo(16,18);ctx.lineTo(7,15);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle=accent;ctx.fillRect(2,-4,4,8);return;
+        ctx.fillStyle='#3d4d86';ctx.strokeStyle='#1d2441';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(0,-9,28,18,6);ctx.fill();ctx.stroke();ctx.shadowColor='#70edff';ctx.shadowBlur=(12)*renderGlow;ellipse(13,0,7,7,'#74f1ff','#203354',2);ctx.shadowBlur=0;ctx.fillStyle='#c8faff';ctx.fillRect(25,-4,17,8);ctx.fillStyle='#40302f';ctx.beginPath();ctx.moveTo(7,8);ctx.lineTo(19,8);ctx.lineTo(16,18);ctx.lineTo(7,15);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle=accent;ctx.fillRect(2,-4,4,8);return;
       }
       if(s.type==='melee'){
         if(['knife','dagger','shortSword','longSword','katana','heavySword','cleaver'].includes(id)){
@@ -989,21 +812,40 @@
         if(shotgun){ctx.strokeStyle='#74513a';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(20,7);ctx.lineTo(35,7);ctx.stroke()}
       }
     }
+    function weaponPose(w){
+      const melee=WEAPONS[w.id].type==='melee',mount=melee?w.angle:-Math.PI/2+(w.mountIndex||0)*Math.PI*2/player.weapons.length;
+      return {x:player.x+Math.cos(mount)*(melee?13:17),y:player.y+Math.sin(mount)*(melee?11:14)};
+    }
+    function weaponMuzzle(w,pose=weaponPose(w)){
+      const lengths={pistol:42,autoPistol:42,revolver:50,smg:47,shotgun:54,autoShotgun:54,rifle:56,assaultRifle:56,sniper:67,machineGun:56,minigun:61,crossbow:49,grenadeLauncher:58,flamethrower:58,plasmaPistol:42,peaShooter:40,seedCannon:46,compostMortar:46,waterGun:47,bubbleBlaster:47,thornSprayer:47,leafBlower:49,nailGun:48,slingshot:42,solarRay:54};
+      const motion=window.TomatoRender.weaponAnimation(w,weaponStats(w),player.attackSpeed),length=(lengths[w.id]||44)*1.14-motion.kick*7,angle=w.angle-motion.lift*(Math.cos(w.angle)<0?-1:1);
+      return {x:pose.x+Math.cos(angle)*length,y:pose.y+Math.sin(angle)*length,angle};
+    }
     function drawWeaponSprite(w,s){
-      const image=weaponSprites[w.id];
-      if(!image?.complete||!image.naturalWidth){drawWeaponShape(w,s);return}
-      const size=clamp(s.type==='melee'?s.range*.62:42+s.size*13,46,78);
-      // As artes originais apontam para o alto e a direita; esta rotação as alinha
-      // com a direção de ataque já aplicada em drawHeldWeapons.
-      ctx.save();ctx.translate(size*.1,0);ctx.rotate(Math.PI/4);ctx.drawImage(image,-size/2,-size/2,size,size);ctx.restore();
+      const spinFrame=w.id==='minigun'?Math.floor(performance.now()/70)%4:0;
+      const sprite=spriteCache.get('weapon:'+w.id+':'+w.rarity+':'+spinFrame,120,80,g=>{
+        g.translate(25,40);paintSprite(g,()=>drawWeaponShape({...w,spinFrame},s));
+      });
+      ctx.drawImage(sprite,-25,-40,120,80);
     }
     function drawHeldWeapons(){
       if(!player?.weapons.length)return;const total=player.weapons.length;
-      player.weapons.forEach((w,i)=>{const s=weaponStats(w),melee=s.type==='melee',aim=w.angle||0,orbit=-Math.PI/2+i*Math.PI*2/total,mount=melee?aim:orbit,idle=Math.sin(performance.now()*.004+i*1.7)*(melee?.7:1.8),mx=player.x+Math.cos(mount)*(melee?13:17),my=player.y+Math.sin(mount)*(melee?11:14)+idle,progress=melee?clamp(1-(w.swing||0),0,1):0,swing=melee&&w.swing>0?-.28+Math.sin(progress*Math.PI)*.88+progress*.18:0,a=aim+swing;
-        ctx.save();ctx.strokeStyle=player.dark;ctx.lineWidth=melee?5.5:7;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(player.x+Math.cos(mount)*10,player.y+Math.sin(mount)*8);ctx.lineTo(mx,my);ctx.stroke();ctx.translate(mx,my);ctx.rotate(a);ctx.translate(-w.recoil*(melee?3:7),0);const rarity=RARITIES[w.rarity];ctx.shadowColor=rarity.color;ctx.shadowBlur=w.rarity==='common'?0:7;ctx.globalAlpha=melee?.14:.24;ellipse(16,0,(melee?23:31)+s.size*6,(melee?11:15)+s.size*3,rarity.color,null);ctx.globalAlpha=1;drawWeaponSprite(w,s);ctx.shadowBlur=0;ellipse(0,0,4.5,4.5,player.color,'#252525',2.2);ctx.restore();
+      player.weapons.forEach((w,i)=>{const s=weaponStats(w),melee=s.type==='melee',aim=w.angle||0,orbit=-Math.PI/2+i*Math.PI*2/total,mount=melee?aim:orbit,pose=weaponPose(w),mx=pose.x,my=pose.y,motion=window.TomatoRender.weaponAnimation(w,s,player.attackSpeed),facing=Math.cos(aim)<0?-1:1,a=aim-motion.lift*facing+(aimInput.state.active?0:.12*facing);
+        ctx.save();ctx.strokeStyle=player.dark;ctx.lineWidth=melee?5.5:7;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(player.x+Math.cos(mount)*10,player.y+Math.sin(mount)*8);ctx.lineTo(mx,my);ctx.stroke();ctx.translate(mx,my);ctx.rotate(a);ctx.translate(-motion.kick*(melee?3:7)+motion.thrust,0);if(facing<0)ctx.scale(1,-1);drawWeaponSprite(w,s);ctx.shadowBlur=0;ellipse(0,0,4.5,4.5,player.color,'#252525',2.2);ctx.restore();
       });
     }
     function drawEnemy(e){
+      if(e.boss){drawEnemyVector(e);return}
+      const key='enemy:'+e.type+':'+e.color+':'+e.r+':'+!!e.armed+':'+(e.shieldHp>0)+':'+(e.hit>0);
+      const sprite=spriteCache.get(key,144,144,g=>paintSprite(g,()=>drawEnemyVector({...e,x:72,y:72,wobble:0,hit:e.hit>0?0.000001:0,burn:0,slow:0,hp:e.maxHp})));
+      const impact=clamp(e.hit/.08,0,1);
+      ctx.save();ctx.translate(e.x,e.y+Math.sin(e.wobble)*1.5);ctx.scale(1+impact*.16,1-impact*.11);
+      ctx.drawImage(sprite,-72,-72,144,144);
+      if(e.burn>0||e.slow>0){ctx.strokeStyle=e.burn>0?'#ff8a36':'#69e5ff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,e.r+8,0,Math.PI*2);ctx.stroke()}
+      if(e.hp<e.maxHp){ctx.fillStyle='#231c22';ctx.fillRect(-e.r,-e.r-13,e.r*2,4);ctx.fillStyle=e.healer?'#ee82ad':'#ff9972';ctx.fillRect(-e.r,-e.r-13,e.r*2*Math.max(0,e.hp/e.maxHp),4)}
+      ctx.restore();
+    }
+    function drawEnemyVector(e){
       ctx.save();ctx.translate(e.x,e.y);const flash=e.hit>0?'#fff':e.color,impact=clamp(e.hit/.08,0,1);drawShadow(0,0,e.r*1.05,.25);if(e.burn>0){ctx.strokeStyle='#ff8a36';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,e.r+6,0,Math.PI*2);ctx.stroke()}if(e.slow>0){ctx.strokeStyle='#69e5ff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,e.r+10,0,Math.PI*2);ctx.stroke()}ctx.translate(0,Math.sin(e.wobble)*1.5);ctx.scale(1+impact*.16,1-impact*.11);ctx.lineJoin='round';
       if(e.boss){
         ctx.save();ctx.rotate(Math.sin(e.wobble)*.04);
@@ -1054,7 +896,7 @@
       }
       if(!e.boss){ctx.save();ctx.globalAlpha=.22;ellipse(-e.r*.4,-e.r*.5,e.r*.28,e.r*.13,'#fff',null);ctx.restore();if(e.hp<e.maxHp){ctx.fillStyle='#231c22';ctx.fillRect(-e.r,-e.r-13,e.r*2,4);ctx.fillStyle=e.healer?'#ee82ad':'#ff9972';ctx.fillRect(-e.r,-e.r-13,e.r*2*Math.max(0,e.hp/e.maxHp),4)}}
       if(!e.boss&&e.armed&&e.type!=='sniperBug'){ctx.save();ctx.rotate(-.42);ctx.strokeStyle='#51321f';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(12,4);ctx.lineTo(31,-12);ctx.stroke();ctx.fillStyle='#c8d2d7';ctx.strokeStyle='#282d30';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(27,-17);ctx.lineTo(39,-20);ctx.lineTo(34,-8);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
-      if(!e.boss&&e.shieldHp>0){ctx.save();ctx.globalAlpha=.72;ctx.strokeStyle='#72dcff';ctx.shadowColor='#72dcff';ctx.shadowBlur=12;ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,e.r+7,-2.45,2.45);ctx.stroke();ctx.fillStyle='#68c9e8';ctx.strokeStyle='#174d65';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-e.r-8,-10);ctx.quadraticCurveTo(-e.r-18,-6,-e.r-15,6);ctx.quadraticCurveTo(-e.r-12,14,-e.r-5,18);ctx.quadraticCurveTo(e.r-1,10,-e.r-2,-8);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
+      if(!e.boss&&e.shieldHp>0){ctx.save();ctx.globalAlpha=.72;ctx.strokeStyle='#72dcff';ctx.shadowColor='#72dcff';ctx.shadowBlur=(12)*renderGlow;ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,e.r+7,-2.45,2.45);ctx.stroke();ctx.fillStyle='#68c9e8';ctx.strokeStyle='#174d65';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-e.r-8,-10);ctx.quadraticCurveTo(-e.r-18,-6,-e.r-15,6);ctx.quadraticCurveTo(-e.r-12,14,-e.r-5,18);ctx.quadraticCurveTo(e.r-1,10,-e.r-2,-8);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
       ctx.restore();
     }
     // O terreno é estático: pré-renderizar evita centenas de primitivas a cada frame.
@@ -1082,6 +924,17 @@
       return layer;
     })();
     function drawGround(){ctx.drawImage(groundLayer,0,0)}
+    const firingSheet=window.TomatoRender.createFiringSheet(spriteCache);
+    function drawMuzzleFlashes(){
+      for(const f of muzzleFlashes){
+        const alpha=clamp(f.life/f.maxLife,0,1),frame=Math.min(7,Math.floor((1-alpha)*8)),sprite=firingSheet.muzzle(frame,f.color);
+        const attached=f.weapon&&player.weapons.includes(f.weapon),point=attached?weaponMuzzle(f.weapon):f,angle=point.angle,size=f.size*1.8;
+        ctx.save();ctx.translate(point.x,point.y);ctx.rotate(angle);ctx.globalAlpha=alpha;ctx.globalCompositeOperation='lighter';
+        if(sprite)ctx.drawImage(sprite,-size*.46,-size*.54,size,size*1.08);
+        else{ctx.fillStyle=f.color;ctx.beginPath();for(let n=0;n<12;n++){const a=n*Math.PI/6,r=n%2?size*.13:size*.5;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r*.65)}ctx.closePath();ctx.fill()}
+        ctx.restore();
+      }
+    }
     const depthQueue=[];
     function safeFloatingPosition(x,y,cameraX,cameraY,width=50,height=22){
       const point=window.TomatoRender.placeLabel((x-cameraX)*CAMERA_ZOOM,(y-cameraY)*CAMERA_ZOOM,width*CAMERA_ZOOM,height*CAMERA_ZOOM,{width:VW,height:VH},hudBlockers);
@@ -1096,13 +949,20 @@
       }
     }
     function draw(){
+      renderGlow=quality.profile().glow?1:0;
       ctx.setTransform(PIXEL_SCALE,0,0,PIXEL_SCALE,0,0);ctx.clearRect(0,0,VW,VH);ctx.save();const {x:cameraX,y:cameraY}=cameraView(screenShake>0?rand(-screenShake*18,screenShake*18):0);ctx.scale(CAMERA_ZOOM,CAMERA_ZOOM);ctx.translate(-cameraX,-cameraY);
       drawGround();drawGardenHints(cameraX,cameraY);
       for(const h of hazards){ctx.save();ctx.globalAlpha=h.warn>0?.25:.55;ellipse(h.x,h.y,h.r,h.r,h.color,h.color,3);ctx.globalAlpha=1;ctx.strokeStyle=h.color;ctx.lineWidth=3;ctx.beginPath();ctx.arc(h.x,h.y,h.r,0,Math.PI*2);ctx.stroke();if(h.poison){ctx.fillStyle='#16320a';ctx.font='900 14px Arial';ctx.textAlign='center';ctx.fillText('VENENO',h.x,h.y-8);ctx.fillText('50/s · '+Math.ceil(h.life)+'s',h.x,h.y+13);ctx.lineWidth=5;ctx.strokeStyle='#ecff91';ctx.beginPath();ctx.arc(h.x,h.y,h.r,-Math.PI/2,-Math.PI/2+Math.PI*2*h.life/5);ctx.stroke()}ctx.restore()}
 
-      for(const d of drops){if(d.x<cameraX-24||d.x>cameraX+VIEW_W+24||d.y<cameraY-24||d.y>cameraY+VIEW_H+24)continue;const bob=Math.sin(d.t*7)*2,glow=10+Math.sin(d.t*8)*3;ctx.save();ctx.translate(d.x,d.y+bob);ctx.rotate(Math.PI/4);ctx.shadowColor='#65ff6d';ctx.shadowBlur=glow;const gem=ctx.createLinearGradient(-6,-6,6,6);gem.addColorStop(0,'#efffc6');gem.addColorStop(.32,'#75ed62');gem.addColorStop(1,'#238b42');ctx.fillStyle=gem;ctx.strokeStyle='#173f26';ctx.lineWidth=2;ctx.fillRect(-5,-5,10,10);ctx.strokeRect(-5,-5,10,10);ctx.fillStyle='#fff9';ctx.fillRect(-3,-3,3,3);ctx.restore()}
-      for(const h of heals){const bob=Math.sin(h.t*6)*3;ctx.save();ctx.translate(h.x,h.y+bob);ctx.shadowColor='#ff4f63';ctx.shadowBlur=16;ctx.fillStyle='#f4485b';ctx.strokeStyle='#5e1722';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(0,9);ctx.bezierCurveTo(-17,-1,-10,-14,0,-7);ctx.bezierCurveTo(10,-14,17,-1,0,9);ctx.fill();ctx.stroke();ctx.fillStyle='#fff';ctx.fillRect(-2,-6,4,11);ctx.fillRect(-6,-2,12,4);ctx.restore()}
-      for(const b of bullets){if(b.x<cameraX-45||b.x>cameraX+VIEW_W+45||b.y<cameraY-45||b.y>cameraY+VIEW_H+45)continue;ctx.save();ctx.strokeStyle=b.crit?'#ffe468aa':b.color+'88';ctx.lineWidth=Math.max(2,b.r*.7);ctx.beginPath();ctx.moveTo(b.lastX,b.lastY);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.shadowColor=b.color;ctx.shadowBlur=10;ctx.translate(b.x,b.y);ctx.rotate(b.angle||0);
+      const gemSprite=spriteCache.get('xp-gem',24,24,g=>{
+        g.translate(12,12);g.rotate(Math.PI/4);const gem=g.createLinearGradient(-6,-6,6,6);
+        gem.addColorStop(0,'#efffc6');gem.addColorStop(.32,'#75ed62');gem.addColorStop(1,'#238b42');
+        g.fillStyle=gem;g.strokeStyle='#173f26';g.lineWidth=2;g.fillRect(-5,-5,10,10);g.strokeRect(-5,-5,10,10);g.fillStyle='#fff9';g.fillRect(-3,-3,3,3);
+      });
+      for(const d of drops){if(d.x<cameraX-24||d.x>cameraX+VIEW_W+24||d.y<cameraY-24||d.y>cameraY+VIEW_H+24)continue;ctx.drawImage(gemSprite,d.x-12,d.y-12+Math.sin(d.t*7)*2,24,24)}
+      for(const h of heals){const bob=Math.sin(h.t*6)*3;ctx.save();ctx.translate(h.x,h.y+bob);ctx.shadowColor='#ff4f63';ctx.shadowBlur=(16)*renderGlow;ctx.fillStyle='#f4485b';ctx.strokeStyle='#5e1722';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(0,9);ctx.bezierCurveTo(-17,-1,-10,-14,0,-7);ctx.bezierCurveTo(10,-14,17,-1,0,9);ctx.fill();ctx.stroke();ctx.fillStyle='#fff';ctx.fillRect(-2,-6,4,11);ctx.fillRect(-6,-2,12,4);ctx.restore()}
+      for(const b of bullets){if(b.x<cameraX-45||b.x>cameraX+VIEW_W+45||b.y<cameraY-45||b.y>cameraY+VIEW_H+45)continue;ctx.save();ctx.strokeStyle=b.crit?'#ffe468aa':b.color+'88';ctx.lineWidth=Math.max(2,b.r*.7);ctx.beginPath();ctx.moveTo(b.lastX,b.lastY);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.shadowColor=b.color;ctx.shadowBlur=(10)*renderGlow;ctx.translate(b.x,b.y);ctx.rotate(b.angle||0);
+        if(b.visual==='bullet'||b.visual==='crit'){const sprite=firingSheet.bullet();if(sprite){ctx.globalCompositeOperation='lighter';ctx.drawImage(sprite,-b.r*5,-b.r, b.r*6,b.r*2);ctx.restore();continue}}
         if(['nail','bolt','thorn'].includes(b.visual)){ctx.fillStyle=b.color;ctx.strokeStyle='#253029';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-b.r,0);ctx.lineTo(b.r*1.6,0);ctx.lineTo(b.r*.65,-b.r*.58);ctx.closePath();ctx.fill();ctx.stroke()}
         else if(b.visual==='leaf'){leafShape(0,0,0,b.color)}
         else if(b.visual==='water'){ctx.fillStyle=b.color;ctx.beginPath();ctx.moveTo(b.r,0);ctx.quadraticCurveTo(-b.r*.6,-b.r*.8,-b.r,0);ctx.quadraticCurveTo(-b.r*.6,b.r*.8,b.r,0);ctx.fill()}
@@ -1110,10 +970,10 @@
         else if(b.visual==='solar'){ctx.fillStyle='#fff7bf';ctx.fillRect(-b.r*1.3,-b.r*.45,b.r*2.8,b.r*.9);ctx.fillStyle='#fff';ctx.fillRect(b.r*.7,-b.r*.2,b.r*.9,b.r*.4)}
         else if(b.visual==='grenade'){ellipse(0,0,b.r*1.25,b.r*1.25,b.color,'#31442d',2);ctx.strokeStyle='#d7e6a3';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(0,-b.r*1.2);ctx.lineTo(b.r*.55,-b.r*1.75);ctx.stroke()}
         else if(b.visual==='compost'){ellipse(0,0,b.r*1.25,b.r*1.05,b.color,'#32251e',2);ctx.fillStyle='#9ca65c';ctx.fillRect(-b.r*.4,-b.r*.3,b.r*.5,b.r*.3)}
-        else{ellipse(0,0,b.r,b.r,b.color,'#344414',2)}ctx.restore()}
-      for(const b of enemyBullets){if(b.x<cameraX-30||b.x>cameraX+VIEW_W+30||b.y<cameraY-30||b.y>cameraY+VIEW_H+30)continue;ctx.save();ctx.shadowColor='#ff4949';ctx.shadowBlur=12;ellipse(b.x,b.y,b.r,b.r,'#ff6256','#5e1717',2);ctx.restore()}
-      ctx.save();ctx.globalCompositeOperation='lighter';for(const f of muzzleFlashes){const a=clamp(f.life/f.maxLife,0,1);ctx.globalAlpha=a;ctx.translate(f.x,f.y);ctx.rotate(f.angle);ctx.shadowColor=f.color;ctx.shadowBlur=18;ellipse(0,0,f.size*a,f.size*.38*a,f.color,null);ellipse(f.size*.55*a,0,f.size*.7*a,f.size*.18*a,'#fff6bf',null);ctx.setTransform(CAMERA_ZOOM*PIXEL_SCALE,0,0,CAMERA_ZOOM*PIXEL_SCALE,-CAMERA_ZOOM*PIXEL_SCALE*cameraX,-CAMERA_ZOOM*PIXEL_SCALE*cameraY)}for(const f of impactFlashes){const a=clamp(f.life/f.maxLife,0,1);ctx.globalAlpha=a;ctx.shadowColor=f.color;ctx.shadowBlur=16;ellipse(f.x,f.y,f.size*(1-a*.35),f.size*(1-a*.35),f.color,null)}ctx.restore();
-      for(const s of slashes){const progress=1-s.life/s.maxLife,start=s.angle-s.arc/2,end=start+s.arc*progress;ctx.save();ctx.globalAlpha=clamp(s.life*7,0,1);ctx.strokeStyle=s.color;ctx.shadowColor=s.color;ctx.shadowBlur=s.crit?18:8;ctx.lineWidth=s.width;ctx.lineCap='round';ctx.beginPath();ctx.arc(s.x,s.y,s.range*.72,start,end);ctx.stroke();ctx.restore()}
+        else if(b.visual==='bullet'||b.visual==='crit'){ctx.fillStyle=b.color;ctx.strokeStyle='#80521c';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-b.r*1.5,-b.r*.65);ctx.lineTo(b.r*.65,-b.r*.65);ctx.lineTo(b.r*1.5,0);ctx.lineTo(b.r*.65,b.r*.65);ctx.lineTo(-b.r*1.5,b.r*.65);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#fff4b5';ctx.fillRect(-b.r,-b.r*.45,b.r*1.6,b.r*.3)}else{ellipse(0,0,b.r,b.r,b.color,'#344414',2)}ctx.restore()}
+      for(const b of enemyBullets){if(b.x<cameraX-30||b.x>cameraX+VIEW_W+30||b.y<cameraY-30||b.y>cameraY+VIEW_H+30)continue;ctx.save();ctx.shadowColor='#ff4949';ctx.shadowBlur=(12)*renderGlow;ellipse(b.x,b.y,b.r,b.r,'#ff6256','#5e1717',2);ctx.restore()}
+      ctx.save();ctx.globalCompositeOperation='lighter';for(const f of impactFlashes){const a=clamp(f.life/f.maxLife,0,1);ctx.globalAlpha=a;ctx.shadowColor=f.color;ctx.shadowBlur=(16)*renderGlow;ellipse(f.x,f.y,f.size*(1-a*.35),f.size*(1-a*.35),f.color,null)}ctx.restore();
+      for(const s of slashes){const progress=1-s.life/s.maxLife,start=s.angle-s.arc/2,end=start+s.arc*progress;ctx.save();ctx.globalAlpha=clamp(s.life*7,0,1);ctx.strokeStyle=s.color;ctx.shadowColor=s.color;ctx.shadowBlur=(s.crit?18:8)*renderGlow;ctx.lineWidth=s.width;ctx.lineCap='round';ctx.beginPath();ctx.arc(s.x,s.y,s.range*.72,start,end);ctx.stroke();ctx.restore()}
       depthQueue.length=0;
       for(const item of arenaDecor.depthItems)if(!item.dead&&window.TomatoRender.isVisible(item.x,item.y,cameraX,cameraY,VIEW_W,VIEW_H,100))depthQueue.push(item);
       for(const e of enemies)if(!e.dead&&window.TomatoRender.isVisible(e.x,e.y,cameraX,cameraY,VIEW_W,VIEW_H,100))depthQueue.push(e);
@@ -1124,13 +984,14 @@
         else if(item===player){ctx.globalAlpha=player.inv>0&&Math.floor(player.inv*15)%2?.35:1;drawTomato(player.x,player.y,player);drawHeldWeapons();ctx.globalAlpha=1}
         else drawEnemy(item);
       }
+      drawMuzzleFlashes();
       for(const fx of deathFx){if(!window.TomatoRender.isVisible(fx.x,fx.y,cameraX,cameraY,VIEW_W,VIEW_H,90))continue;const t=clamp(fx.life/fx.maxLife,0,1);ctx.save();ctx.translate(fx.x,fx.y+((1-t)*7));ctx.rotate(fx.rot);ctx.globalAlpha=t*.78;ctx.scale(1+(1-t)*.35,t*.55);ellipse(0,0,fx.r,fx.r*.78,fx.color,'#1a1919',fx.boss?5:3);ctx.restore()}
-      for(const c of casings){if(c.x<cameraX-16||c.x>cameraX+VIEW_W+16||c.y<cameraY-16||c.y>cameraY+VIEW_H+16)continue;ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.rot);ctx.fillStyle='#e5b84c';ctx.fillRect(-3,-1,6,2);ctx.restore()}
-      for(const p of particles){if(p.x<cameraX-28||p.x>cameraX+VIEW_W+28||p.y<cameraY-28||p.y>cameraY+VIEW_H+28)continue;const a=clamp(p.life/(p.maxLife||.45),0,1);ctx.save();ctx.globalAlpha=p.type==='smoke'?a*.35:a;ctx.translate(p.x,p.y);ctx.rotate(p.rot||0);if(p.type==='smoke'){ellipse(0,0,p.size*(1.6-a*.4),p.size*(1.15-a*.2),'#d9ddd4',null)}else if(p.type==='chip'){ctx.fillStyle=p.color;ctx.strokeStyle='#171717';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,-p.size);ctx.lineTo(p.size*.8,p.size*.6);ctx.lineTo(-p.size*.7,p.size*.4);ctx.closePath();ctx.fill();ctx.stroke()}else{ctx.shadowColor=p.color;ctx.shadowBlur=p.type==='spark'?8:3;ellipse(0,0,p.size,p.size,p.color,null)}ctx.restore()}ctx.globalAlpha=1;
+      for(const c of casings){if(c.x<cameraX-16||c.x>cameraX+VIEW_W+16||c.y<cameraY-16||c.y>cameraY+VIEW_H+16)continue;ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.rot);const sprite=firingSheet.casing();if(sprite){ctx.globalCompositeOperation='lighter';ctx.drawImage(sprite,-5,-3.5,10,7);ctx.restore();continue}ctx.fillStyle='#e5b84c';ctx.strokeStyle='#80521c';ctx.lineWidth=1;ctx.fillRect(-3,-1.5,6,3);ctx.strokeRect(-3,-1.5,6,3);ctx.fillStyle='#fff0aa';ctx.fillRect(-2,-1,4,1);ctx.restore()}
+      for(const p of particles){if(p.x<cameraX-28||p.x>cameraX+VIEW_W+28||p.y<cameraY-28||p.y>cameraY+VIEW_H+28)continue;const a=clamp(p.life/(p.maxLife||.45),0,1);ctx.save();ctx.globalAlpha=p.type==='smoke'?a*.35:a;ctx.translate(p.x,p.y);ctx.rotate(p.rot||0);if(p.type==='smoke'){ellipse(0,0,p.size*(1.6-a*.4),p.size*(1.15-a*.2),'#d9ddd4',null)}else if(p.type==='chip'){ctx.fillStyle=p.color;ctx.strokeStyle='#171717';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,-p.size);ctx.lineTo(p.size*.8,p.size*.6);ctx.lineTo(-p.size*.7,p.size*.4);ctx.closePath();ctx.fill();ctx.stroke()}else{ctx.shadowColor=p.color;ctx.shadowBlur=(p.type==='spark'?8:3)*renderGlow;ellipse(0,0,p.size,p.size,p.color,null)}ctx.restore()}ctx.globalAlpha=1;
       for(const n of damageNumbers){
         const pop=n.crit?1+Math.sin(clamp(n.life*5,0,1)*Math.PI)*.18:1,label=n.crit?`✦ ${n.value}`:String(n.value);
         ctx.save();ctx.font=`${n.crit?'1000 25px':'900 17px'} Arial`;
-        const width=(ctx.measureText(label).width+8)*pop,safe=safeFloatingPosition(n.x,n.y,cameraX,cameraY,width,(n.crit?32:24)*pop);
+        const width=n.textWidth||(n.textWidth=ctx.measureText(label).width+8),now=performance.now();if(!n.layoutAt||now-n.layoutAt>100){n.safe=safeFloatingPosition(n.x,n.y,cameraX,cameraY,width*1.2,(n.crit?32:24)*1.2);n.layoutAt=now}const safe=n.safe;
         if(!safe){ctx.restore();continue}
         ctx.globalAlpha=clamp(n.life*2,0,1);ctx.translate(safe.x,safe.y);ctx.scale(pop,pop);ctx.textAlign='center';ctx.fillStyle=n.heal?'#79f27b':n.shield?'#72dcff':n.crit?'#ffd23e':'#fff';ctx.strokeStyle='#171817';ctx.lineWidth=n.crit?5:4;ctx.strokeText(label,0,0);ctx.fillText(label,0,0);ctx.restore();
       }
@@ -1146,7 +1007,7 @@
         ctx.fillStyle='#72e878';for(const d of drops)ctx.fillRect(mapX+d.x/W*mapW,mapY+d.y/H*mapH,1.3,1.3);
         ctx.fillStyle='#ff8e92';for(const h of heals)ctx.fillRect(mapX+h.x/W*mapW,mapY+h.y/H*mapH,1.7,1.7);
         for(const e of enemies){ctx.fillStyle=e.boss?'#ffd15c':'#ef6960';ctx.fillRect(mapX+e.x/W*mapW,mapY+e.y/H*mapH,e.boss?3:1.3,e.boss?3:1.3)}
-        ctx.fillStyle='#9af36a';ctx.shadowColor='#8dff64';ctx.shadowBlur=5;ctx.beginPath();ctx.arc(mapX+player.x/W*mapW,mapY+player.y/H*mapH,2.3,0,Math.PI*2);ctx.fill();ctx.restore()
+        ctx.fillStyle='#9af36a';ctx.shadowColor='#8dff64';ctx.shadowBlur=(5)*renderGlow;ctx.beginPath();ctx.arc(mapX+player.x/W*mapW,mapY+player.y/H*mapH,2.3,0,Math.PI*2);ctx.fill();ctx.restore()
       }
     }
 
@@ -1156,7 +1017,7 @@
       dashButton.classList.toggle('cool',player.dashCd>0);updateInventory();refreshHudLayout();drawRadar();
     }
     function updateQualityLabel(){const profile=quality.profile();ui.qualityBtn.textContent=profile.name==='EQUILIBRADA'?'GRÁF':profile.name==='ALTA'?'ALTA':'FPS';ui.qualityBtn.title=`Qualidade: ${profile.name} — clique ou Q para alterar`;ui.qualityBtn.setAttribute('aria-label',ui.qualityBtn.title)}
-    function cycleQuality(){const profile=quality.cycle();updateQualityLabel();announce(`QUALIDADE: ${profile.name}`);sound('click')}
+    function cycleQuality(){const profile=quality.cycle();resolutionLimit=profile.pixelScale;fitCanvasResolution();updateQualityLabel();announce(`QUALIDADE: ${profile.name}`);sound('click')}
     function updateInventory(){
       if(!player)return;
       ui.arsenalBtn.textContent=`ARSENAL ${player.weapons.length}/${MAX_WEAPONS}`;
@@ -1167,19 +1028,27 @@
         const s=weaponStats(w),rarity=RARITIES[w.rarity],isSelected=index===selectedWeaponIndex;slot.className=`weapon-slot ${w.rarity}${isSelected?' selected':''}`;slot.title=`Selecionar ${s.name}, ${rarity.name}, nível ${w.level}`;slot.setAttribute('aria-label',slot.title);slot.setAttribute('aria-selected',String(isSelected));slot.style.color=rarity.color;slot.innerHTML=`<img class="weapon-sprite" src="${weaponSpriteUrl(w.id)}" alt=""><span class="rarity-dot"></span><span class="slot-name">${s.name}</span><small>${isSelected?'★ ':''}NV.${w.level}</small>`;slot.addEventListener('click',()=>{selectedWeaponIndex=index;inventorySignature='';updateHud();sound('click')});ui.inventory.append(slot)
       }
     }
-    function loop(t){const dt=clamp((t-last)/1000,0,.1);last=t;acc=Math.min(.1,acc+dt);const step=1/SIMULATION_HZ;while(acc+1e-10>=step){update(step);acc=Math.max(0,acc-step)}draw();requestAnimationFrame(loop)}
+    function loop(t){
+      if(mode!=='playing'&&(aimInput.state.down||aimInput.state.pressed))aimInput.reset();
+      const started=performance.now(),elapsed=t-last,dt=clamp(elapsed/1000,0,.05);last=t;acc=Math.min(.05,acc+dt);
+      const step=1/SIMULATION_HZ;while(acc+1e-10>=step){update(step);acc=Math.max(0,acc-step)}
+      draw();
+      if(mode==='playing'&&quality.sample(elapsed,performance.now()-started)){resolutionLimit=quality.profile().pixelScale;fitCanvasResolution();updateQualityLabel()}
+      requestAnimationFrame(loop);
+    }
 
     const nickInput=$('#nickInput');nickname=SaveManager.load()||'Tomate';nickInput.value=nickname==='Tomate'?'':nickname;$('#nickDisplay').textContent=nickname;scheduleLoadingReady();
     function animationError(error){if(error.name!=='AbortError')console.error('Falha na animação da interface.',error)}
     function enterMenu(){if(mode!=='loading')return;clearUiTimers();mode='loadingExit';const run=runId,value=nickInput.value.trim().replace(/[<>]/g,'').slice(0,18);nickname=value||'Tomate';SaveManager.save(nickname);$('#nickDisplay').textContent=nickname;sound('click');ui.loading.animate([{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(1.06)'}],{duration:420,easing:'ease-in',fill:'forwards'}).finished.then(()=>{if(run!==runId||mode!=='loadingExit')return;ui.loading.classList.remove('show');ui.loading.style.opacity='';ui.menu.classList.add('show');mode='menu'}).catch(animationError)}
     updateQualityLabel();$('#loadingPlay').addEventListener('click',enterMenu);nickInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&ui.loading.classList.contains('ready'))enterMenu()});$('#changeNick').addEventListener('click',()=>{clearUiTimers();ui.menu.classList.remove('show');ui.loading.classList.add('show','ready');ui.loading.getAnimations().forEach(a=>a.cancel());mode='loading';nickFocusTimer=setTimeout(()=>{nickFocusTimer=null;if(mode==='loading'){nickInput.focus();nickInput.select()}},80)});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden){resetInput();if(mode==='playing')togglePause(true)}});
     document.querySelectorAll('.character').forEach(b=>b.addEventListener('click',()=>{sound('click');selected=b.dataset.char;document.querySelectorAll('.character').forEach(x=>{const on=x===b;x.classList.toggle('selected',on);x.setAttribute('aria-checked',on)})}));
     document.querySelectorAll('.difficulty').forEach(button=>button.addEventListener('click',()=>{difficulty=button.dataset.difficulty;document.querySelectorAll('.difficulty').forEach(x=>x.classList.toggle('selected',x===button));sound('click')}));
-    $('#startBtn').addEventListener('click',()=>{if(mode!=='menu')return;mode='launching';const run=runId;sound('wave');ui.menu.animate([{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(.94)'}],{duration:360,easing:'ease-in',fill:'forwards'}).finished.then(()=>{if(run!==runId||mode!=='launching')return;ui.menu.getAnimations().forEach(a=>a.cancel());startGame()}).catch(animationError)});$('#restartBtn').addEventListener('click',()=>{if(mode!=='ended')return;cancelRunTimers();resetInput();clearWaveEffects();enemies=[];drops=[];heals=[];hideScreens();ui.menu.classList.add('show');mode='menu';ui.hud.classList.remove('show');ui.bossWrap.classList.remove('show')});$('#nextWaveBtn').addEventListener('click',nextWave);$('#rerollBtn').addEventListener('click',()=>{if(mode!=='shop')return;const cost=5+shopRerolls*3;if(seeds<cost){announce('SEMENTES INSUFICIENTES');sound('hit');return}seeds-=cost;shopRerolls++;renderShop(true);updateHud();sound('click')});$('#pauseBtn').addEventListener('click',()=>togglePause());ui.qualityBtn.addEventListener('click',cycleQuality);$('#resumeBtn').addEventListener('click',()=>togglePause(false));$('#dashBtn').addEventListener('pointerdown',e=>{e.preventDefault();dash()});ui.arsenalBtn.addEventListener('click',()=>openArsenal());$('#arsenalClose').addEventListener('click',closeArsenal);
+    $('#startBtn').addEventListener('click',()=>{if(mode!=='menu')return;mode='launching';const run=runId;sound('wave');ui.menu.animate([{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(.94)'}],{duration:360,easing:'ease-in',fill:'forwards'}).finished.then(()=>{if(run!==runId||mode!=='launching')return;ui.menu.getAnimations().forEach(a=>a.cancel());startGame()}).catch(animationError)});$('#restartBtn').addEventListener('click',()=>{if(mode!=='ended')return;cancelRunTimers();resetInput();clearWaveEffects();enemies=[];drops=[];heals=[];hideScreens();ui.menu.classList.add('show');mode='menu';ui.hud.classList.remove('show');ui.bossWrap.classList.remove('show')});$('#nextWaveBtn').addEventListener('click',nextWave);$('#rerollBtn').addEventListener('click',()=>{if(mode!=='shop')return;const cost=5+shopRerolls*3;if(seeds<cost){announce('SEMENTES INSUFICIENTES');sound('hit');return}seeds-=cost;shopRerolls++;renderShop(true);updateHud();sound('click')});$('#pauseBtn').addEventListener('click',()=>togglePause());ui.qualityBtn.addEventListener('click',cycleQuality);$('#resumeBtn').addEventListener('click',()=>togglePause(false));$('#dashBtn').addEventListener('click',()=>dash());ui.arsenalBtn.addEventListener('click',()=>openArsenal());$('#arsenalClose').addEventListener('click',closeArsenal);
     addEventListener('keydown',e=>{if(['INPUT','TEXTAREA','SELECT'].includes(e.target?.tagName)||e.target?.isContentEditable)return;if(mode==='playing')keys[e.code]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();if(e.repeat)return;if(e.code==='Space')dash();if(e.code==='KeyQ')cycleQuality();if(e.code==='KeyE'&&mode==='playing')openArsenal();if(e.code==='Escape'&&mode==='arsenal'){closeArsenal();return}if(e.code==='KeyP'||e.code==='Escape')togglePause()});addEventListener('keyup',e=>keys[e.code]=false);addEventListener('blur',()=>{resetInput();if(mode==='playing')togglePause(true)});
 
     const stick=$('#stick'),knob=$('#knob');let stickId=null;
-    function resetInput(){keys={};touchVec={x:0,y:0};stickId=null;knob.style.transform=''}
+    function resetInput(){aimInput.reset();keys={};touchVec={x:0,y:0};stickId=null;knob.style.transform=''}
     function stickMove(e){const r=stick.getBoundingClientRect(),x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2),m=Math.hypot(x,y),lim=r.width*.34,k=Math.min(1,lim/(m||1));touchVec={x:x/lim*k,y:y/lim*k};knob.style.transform=`translate(${x*k}px,${y*k}px)`}
     stick.addEventListener('pointerdown',e=>{if(mode!=='playing'||stickId!==null)return;stickId=e.pointerId;stick.setPointerCapture(e.pointerId);stickMove(e)});stick.addEventListener('pointermove',e=>{if(e.pointerId===stickId)stickMove(e)});function stickEnd(e){if(e.pointerId===stickId){stickId=null;touchVec={x:0,y:0};knob.style.transform=''}}stick.addEventListener('pointerup',stickEnd);stick.addEventListener('pointercancel',stickEnd);stick.addEventListener('lostpointercapture',stickEnd);
 
