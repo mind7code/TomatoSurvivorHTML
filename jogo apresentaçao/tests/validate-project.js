@@ -8,4 +8,7 @@ for (const path of files) if (!html.includes('./' + path.replaceAll('\\', '/')))
 const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
 if(new Set(ids).size!==ids.length)throw Error('ID HTML duplicado');
 for(const [,id] of html.matchAll(/\$\(['"]#([^'"]+)['"]\)/g))if(!ids.includes(id))throw Error('Elemento inexistente: '+id);
+const vm=require('node:vm'),sandbox={window:{TomatoContent:{}}};sandbox.window.window=sandbox.window;vm.createContext(sandbox);
+for(const file of ['js/content/weapons.js','js/content/addons.js'])vm.runInContext(fs.readFileSync(file,'utf8'),sandbox,{filename:file});
+for(const id of Object.keys({...sandbox.window.TomatoContent.catalog,...sandbox.window.TomatoContent.weapons}))if(!fs.existsSync(`assets/weapons/${id}.png`))throw Error('Skin de arma inexistente: '+id);
 console.log('Estrutura e sintaxe validadas.');

@@ -2,7 +2,7 @@
 
 Abra `tomato (2).html` para jogar. Os scripts externos são clássicos (não ES Modules), então o jogo continua funcionando ao abrir o arquivo diretamente no navegador.
 
-No desktop, mova o mouse para mirar, clique com o botão esquerdo para atacar e segure para disparar continuamente. Todas as armas seguem a mira; escopetas e armas de múltiplos projéteis mantêm seu cone de dispersão. Armas corpo a corpo golpeiam na direção do cursor. WASD/setas movem, Espaço dá arrancada e P pausa. Soltar o botão, perder foco ou abrir um menu interrompe o disparo.
+As armas miram e atacam automaticamente o inimigo mais próximo. No desktop, segure o botão esquerdo para assumir temporariamente a mira manual pelo cursor; ao soltar, o auto-fire volta a escolher os alvos. Escopetas e armas de múltiplos projéteis mantêm seu cone de dispersão. WASD/setas movem, Espaço dá arrancada e P pausa.
 
 A sequência visual da referência foi adaptada às armas existentes: mira, disparo/golpe, recuo e retorno. Os quadros de clarão, projétil e cartucho vêm de `assets/effects/firing-reference.png` (imagem fornecida, preservada sem alterações), desenhados com composição aditiva para os efeitos sobre fundo escuro. As armas mantêm silhuetas, cadências e pesos próprios. O gerador de imagem transparente não estava autenticado; nenhuma imagem gerada foi incorporada.
 
@@ -17,9 +17,9 @@ A sequência visual da referência foi adaptada às armas existentes: mira, disp
 - `js/content/enemies.js` — catálogo dos inimigos comuns.
 - `js/state/player.js` — factory do estado inicial do jogador.
 - `js/combat/collision-grid.js` — índice espacial usado pelas colisões de projéteis.
-- `js/combat/pointer-aim.js` — mira em coordenadas lógicas, captura do mouse e clique/segurar.
+- `js/combat/pointer-aim.js` — mira manual opcional em coordenadas lógicas e captura segura do mouse.
 - `js/render/culling.js` — descarte de objetos fora da câmera.
-- `js/render/sprite-cache.js` — cache limitado de desenhos transparentes para inimigos, armas e XP. As armas usam os desenhos Canvas nativos, inclusive nos ícones, sem os fundos dos PNGs antigos.
+- `js/render/sprite-cache.js` — cache limitado de desenhos transparentes para inimigos e XP. As armas usam novamente as skins PNG de `assets/weapons`, com o desenho Canvas nativo como fallback.
 - `js/render/weapon-animation.js` — animação de ataque adaptada ao recuo e à cadência de cada arma.
 - `js/render/firing-sheet.js` — quadros de efeitos da referência, reutilizados em cache.
 - `js/render/arena-decor.js` — cenário procedural pré-renderizado e caixas/barris visuais que se despedaçam com tiros.

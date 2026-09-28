@@ -3,6 +3,35 @@ const {createGame}=require('./harness');
 function game(){const g=createGame();g.execute("startGame('ember');spawnClock=999;enemies=[]");return g;}
 function pointer(g,type,x=1100,y=240,extra={}){g.document.querySelector('#game').dispatch(type,{pointerId:7,pointerType:'mouse',button:0,buttons:type==='pointerup'?0:1,clientX:x,clientY:y,...extra});}
 {
+  const g=game();g.execute("EnemyManager.spawn('tank',{x:player.x+180,y:player.y},{summoned:true});updateWeapons(1/60)");
+  assert.equal(g.execute('bullets.length'),1,'Auto-fire ataca sem clique quando existe um alvo');
+  assert.equal(g.execute('Math.sign(bullets[0].vx)'),1,'Auto-fire aponta para o inimigo mais próximo');
+}
+for(const [dx,dy] of [[180,0],[-180,0],[0,-180],[0,180]]){
+  const g=game();g.execute(`EnemyManager.spawn('tank',{x:player.x+${dx},y:player.y+${dy}},{summoned:true});updateWeapons(1/60)`);
+  assert.equal(g.execute('bullets.length'),1);
+  assert.ok(g.execute('Math.abs((enemies[0].x-bullets[0].spawnX)*bullets[0].vy-(enemies[0].y-bullets[0].spawnY)*bullets[0].vx)<1e-6'),'Auto-fire mira corretamente nos quatro sentidos');
+}
+{
+  const g=game();g.execute("EnemyManager.spawn('tank',{x:player.x+180,y:player.y},{summoned:true});for(let i=0;i<120;i++)updateWeapons(1/60)");
+  assert.ok(g.execute('bullets.length>=4'),'Auto-fire mantém a cadência sem entrada do mouse');
+}
+{
+  const g=game();g.execute("EnemyManager.spawn('tank',{x:player.x+180,y:player.y},{summoned:true});updateWeapons(1/60);const first=bullets[0].vx;enemies[0].dead=true;player.weapons[0].cooldown=0;EnemyManager.spawn('tank',{x:player.x-180,y:player.y},{summoned:true});updateWeapons(1/60);window.changedTarget=first>0&&bullets.at(-1).vx<0");
+  assert.equal(g.execute('window.changedTarget'),true,'Auto-fire troca de alvo quando o anterior morre');
+}
+{
+  const g=game();g.execute("player.x=300;player.y=360;EnemyManager.spawn('tank',{x:900,y:360},{summoned:true});updateWeapons(1/60)");
+  assert.equal(g.execute('bullets.length'),0,'Auto-fire não ataca fora do alcance');
+  g.execute('enemies[0].x=player.x+180;updateWeapons(1/60)');assert.equal(g.execute('bullets.length'),1,'Auto-fire retoma quando o alvo entra no alcance');
+}
+{
+  const g=game();g.execute("player.weapons=Array.from({length:6},()=>createWeapon('pistol'));for(const [x,y] of [[player.x+150,player.y],[player.x-150,player.y],[player.x,player.y-150]])EnemyManager.spawn('tank',{x,y},{summoned:true});window.nearestCalls=0;const previousNearest=nearestEnemy;nearestEnemy=(...args)=>{window.nearestCalls++;return previousNearest(...args)};updateWeapons(1/60);nearestEnemy=previousNearest");
+  const targetCount=g.execute("new Set(player.weapons.map(w=>{const p=weaponPose(w);let best=-1,error=Infinity;for(let i=0;i<enemies.length;i++){const e=enemies[i],value=Math.abs(Math.sin(w.angle)*(e.x-p.x)-Math.cos(w.angle)*(e.y-p.y));if(value<error){error=value;best=i}}return best})).size");
+  assert.equal(targetCount,3,'Seis armas são distribuídas entre os alvos disponíveis');
+  assert.equal(g.execute('window.nearestCalls'),0,'Auto-fire não repete a busca global para cada arma');
+}
+{
   const g=game();pointer(g,'pointermove');g.execute('updateWeapons(1/60)');
   assert.equal(g.execute('bullets.length'),0,'Mirar sem pressionar não atira');
   pointer(g,'pointerdown');pointer(g,'pointerup');g.execute('updateWeapons(1/60)');
@@ -38,4 +67,4 @@ for(const [x,y] of [[1100,360],[100,360],[640,80],[640,650]]){
 const counts=[];
 for(const fps of [60,120,144,240]){const g=game();g.execute('player.hp=player.maxHp=1e9;waveTime=999;player.nextXp=1e9;window.testShots=0;const fire=attackWeapon;attackWeapon=w=>{window.testShots++;fire(w)}');pointer(g,'pointerdown');g.runFrames(fps,2);counts.push(g.execute('window.testShots'));}
 assert.ok(counts[0]>2);assert.ok(counts.every(n=>n===counts[0]));
-console.log('Mouse: clique, segurar, soltar, seis armas, câmera/DPI, cancelamento e animações do catálogo aprovados.');
+console.log('Auto-fire e mouse: alvo próximo, clique, segurar, soltar, seis armas, câmera/DPI e cancelamento aprovados.');

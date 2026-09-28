@@ -38,7 +38,7 @@
       </div>
       <div class="menu-actions"><button class="start" id="startBtn">Plantar o caos</button></div>
       <div class="difficulty-row" aria-label="Dificuldade"><button class="difficulty" data-difficulty="easy" title="Inimigos mais lentos e fracos">FÁCIL<small>Para aprender</small></button><button class="difficulty selected" data-difficulty="normal" title="Experiência recomendada">NORMAL<small>Recomendado</small></button><button class="difficulty" data-difficulty="hard" title="Inimigos mais rápidos e resistentes">DIFÍCIL<small>Para veteranos</small></button></div>
-      <p class="controls-hint">Mouse para mirar • Clique/segure para atacar • WASD ou setas para mover • Espaço para arrancada • E para arsenal • P para pausar</p>
+      <p class="controls-hint">Auto-fire ativo • Segure o mouse para mirar manualmente • WASD ou setas para mover • Espaço para arrancada • E para arsenal • P para pausar</p>
     </section>
 
     <section class="hud" id="hud" aria-live="polite">
@@ -192,17 +192,10 @@
     Object.assign(WEAPONS,window.TomatoContent.weapons);
     // Catálogo em js/content/weapons.js.
     const weaponIds=Object.keys(WEAPONS);
-    const spriteCache=window.TomatoRender.createSpriteCache(192),weaponIcons=new Map();
+    const spriteCache=window.TomatoRender.createSpriteCache(192),WEAPON_SKIN_PATH='./assets/weapons/';
     function paintSprite(g,paint){const previous=ctx;ctx=g;try{paint()}finally{ctx=previous}}
-    function weaponSpriteUrl(id){
-      if(!weaponIcons.has(id)){
-        const sprite=document.createElement('canvas');sprite.width=160;sprite.height=96;
-        const g=sprite.getContext('2d');g.translate(35,48);g.scale(1.6,1.6);
-        paintSprite(g,()=>drawWeaponShape({id,rarity:'common',spinFrame:0},WEAPONS[id]));
-        weaponIcons.set(id,sprite.toDataURL?sprite.toDataURL():'');
-      }
-      return weaponIcons.get(id);
-    }
+    const weaponSkins=new Map(weaponIds.map(id=>{const image=typeof Image==='function'?new Image():null;if(image){image.decoding='async';image.src=`${WEAPON_SKIN_PATH}${id}.png`}return [id,image]}));
+    const weaponSpriteUrl=id=>`${WEAPON_SKIN_PATH}${id}.png`;
     const EVOLUTIONS={shortSword:{name:'Espada Infernal',mult:1.38,effect:'wideArc'},pistol:{name:'Dual Pistols',mult:1.18,projectiles:1},rifle:{name:'Rifle de Plasma',mult:1.45,projectiles:1,effect:'superPierce'},knife:{name:'Lâminas Gêmeas',mult:1.3,projectiles:1},hammer:{name:'Martelo Sísmico',mult:1.5,effect:'knockback'}};
     const BOSS_TYPES = [
       {kind:'rotKing',name:'REI DA PODRIDÃO',hp:3000,r:44,speed:38,damage:31,color:'#713449',xp:78,pattern:'radial'},
@@ -263,7 +256,6 @@
     let hazards=[];
     let keys = {}, touchVec = {x:0,y:0};
     const aimInput=window.TomatoCombat.createPointerAim({canvas,width:VW,height:VH,isPlaying:()=>mode==='playing'});
-    const touchAutoAim=window.matchMedia('(pointer:coarse)').matches;
     let runId=0,countdownTimer=null,loadingReadyTimer=null,nickFocusTimer=null,afterArsenal=null;
     const runTimeouts=new Set();
     function runLater(callback,ms){const run=runId,id=setTimeout(()=>{runTimeouts.delete(id);if(run===runId)callback()},ms);runTimeouts.add(id);return id}
@@ -395,13 +387,33 @@
     function bossShot(e,angle,speed=210,r=7,damage=15,life=4){if(enemyBullets.length<quality.profile().enemyBullets)enemyBullets.push({x:e.x,y:e.y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,r,damage,life})}
 
     function nearestEnemy(range=Infinity){let target=null,best=range*range;for(const e of enemies){if(e.dead)continue;const d=dist2(player,e);if(d<best){best=d;target=e}}return target}
+    const autoTargetCandidates=[],autoTargetDistances=[],autoTargetLoads=new Map();
+    function collectAutoTargets(limit=MAX_WEAPONS){
+      let count=0;
+      for(const enemy of enemies){
+        if(enemy.dead)continue;const distance2=dist2(player,enemy);let index=Math.min(count,limit);
+        while(index>0&&autoTargetDistances[index-1]>distance2)index--;
+        if(index>=limit)continue;const end=Math.min(count,limit-1);
+        for(let slot=end;slot>index;slot--){autoTargetCandidates[slot]=autoTargetCandidates[slot-1];autoTargetDistances[slot]=autoTargetDistances[slot-1]}
+        autoTargetCandidates[index]=enemy;autoTargetDistances[index]=distance2;if(count<limit)count++;
+      }
+      autoTargetCandidates.length=count;autoTargetDistances.length=count;return count
+    }
+    function distributedAutoTarget(stats,candidateCount,loads){
+      const range2=stats.range*stats.range;let choice=null,choiceLoad=Infinity;
+      for(let index=0;index<candidateCount;index++){
+        if(autoTargetDistances[index]>=range2)continue;const enemy=autoTargetCandidates[index],load=loads.get(enemy)||0;
+        if(load<choiceLoad){choice=enemy;choiceLoad=load;if(load===0)break}
+      }
+      if(choice)loads.set(choice,choiceLoad+1);return choice
+    }
     function projectileVisual(id,crit){
       if(crit)return{kind:'crit',color:'#ffd64e'};
       const visuals={peaShooter:{kind:'pea',color:'#a8e85c'},seedCannon:{kind:'seed',color:'#c99a4d'},compostMortar:{kind:'compost',color:'#6b5135'},waterGun:{kind:'water',color:'#65dfff'},leafBlower:{kind:'leaf',color:'#a7dc58'},nailGun:{kind:'nail',color:'#c7d0d1'},slingshot:{kind:'stone',color:'#9d8d78'},bubbleBlaster:{kind:'bubble',color:'#b6ecff'},thornSprayer:{kind:'thorn',color:'#78b94b'},solarRay:{kind:'solar',color:'#fff0a5'},plasmaPistol:{kind:'plasma',color:'#70efff'},crossbow:{kind:'bolt',color:'#d6c19a'},grenadeLauncher:{kind:'grenade',color:'#819558'},flamethrower:{kind:'flame',color:'#ff713c'}};
       return visuals[id]||{kind:'bullet',color:'#ffc34c'};
     }
-    function attackWeapon(w){
-      const s=weaponStats(w),target=aimInput.state.active?aimInput.world(cameraView(),CAMERA_ZOOM):nearestEnemy(s.range);if(!target)return;
+    function attackWeapon(w,forcedTarget=null){
+      const s=weaponStats(w),target=forcedTarget||(aimInput.state.down&&aimInput.state.active?aimInput.world(cameraView(),CAMERA_ZOOM):nearestEnemy(s.range));if(!target)return;
       w.shotAge=0;w.recoil=0;const pose=weaponPose(w),angle=s.type==='melee'?Math.atan2(target.y-player.y,target.x-player.x):Math.atan2(target.y-pose.y,target.x-pose.x);w.angle=angle;const muzzle=weaponMuzzle(w,pose);
       if(s.type==='melee'){
         w.swing=1;
@@ -418,14 +430,14 @@
       w.cooldown+=s.rate/player.attackSpeed;
     }
     function updateWeapons(dt){
-      const trigger=aimInput.consume()||(touchAutoAim&&!aimInput.state.active),target=aimInput.state.active?aimInput.world(cameraView(),CAMERA_ZOOM):null;
+      const manualFire=aimInput.consume(),manualTarget=manualFire&&aimInput.state.active?aimInput.world(cameraView(),CAMERA_ZOOM):null,candidateCount=manualTarget?0:collectAutoTargets();autoTargetLoads.clear();
       for(let i=0;i<player.weapons.length;i++){
-        const w=player.weapons[i],s=weaponStats(w);w.mountIndex=i;w.cooldown=Math.max(0,w.cooldown)-dt;
+        const w=player.weapons[i],s=weaponStats(w),target=manualTarget||distributedAutoTarget(s,candidateCount,autoTargetLoads);w.mountIndex=i;w.cooldown=Math.max(0,w.cooldown)-dt;
         w.shotAge=(w.shotAge??Infinity)+dt;w.swing=Math.max(0,(w.swing||0)-dt*5.5);
         if(target){const pose=weaponPose(w);w.angle=Math.atan2(target.y-(s.type==='melee'?player.y:pose.y),target.x-(s.type==='melee'?player.x:pose.x))}
         const motion=window.TomatoRender.weaponAnimation(w,s,player.attackSpeed);w.recoil=motion.kick;
-        if(!trigger){w.cooldown=Math.max(0,w.cooldown);continue}
-        for(let shots=0;w.cooldown<=0&&shots<16;shots++){const previous=w.cooldown;attackWeapon(w);if(w.cooldown===previous){w.cooldown=0;break}}
+        if(!target){w.cooldown=Math.max(0,w.cooldown);continue}
+        for(let shots=0;w.cooldown<=0&&shots<16;shots++){const previous=w.cooldown;attackWeapon(w,target);if(w.cooldown===previous){w.cooldown=0;break}}
       }
     }
     function damageEnemy(e,amount,crit=false,knock=0,fromX=player.x,fromY=player.y){if(e.dead)return;if(e.shieldHp>0){const absorbed=Math.min(e.shieldHp,amount);e.shieldHp-=absorbed;amount-=absorbed;ParticleSystem.burst(e.x,e.y,'#70d9ff',5);if(damageNumbers.length<quality.profile().numbers)damageNumbers.push({x:e.x,y:e.y-13,value:Math.round(absorbed),crit:false,life:.55,vy:-28,shield:true});if(amount<=0)return}e.hp-=amount;e.hit=.08;const a=Math.atan2(e.y-fromY,e.x-fromX);e.x=clamp(e.x+Math.cos(a)*knock,e.r,W-e.r);e.y=clamp(e.y+Math.sin(a)*knock,e.r,H-e.r);collisionGrid.move(e);if(damageNumbers.length<quality.profile().numbers)damageNumbers.push({x:e.x+rand(-5,5),y:e.y-10,value:Math.round(amount),crit,life:.72,vy:-34});ParticleSystem.burst(e.x,e.y,crit?'#ffd24b':'#f2eacb',crit?6:3);ParticleSystem.emit({x:e.x,y:e.y,amount:crit?5:3,speed:crit?165:105,direction:a+Math.PI,spread:2.5,gravity:180,life:.42,size:crit?5:3.5,color:crit?'#ffdd59':e.color,type:'chip'});if(crit)sound('crit');if(e.hp<=0)e.dead=true}
@@ -816,12 +828,18 @@
       const melee=WEAPONS[w.id].type==='melee',mount=melee?w.angle:-Math.PI/2+(w.mountIndex||0)*Math.PI*2/player.weapons.length;
       return {x:player.x+Math.cos(mount)*(melee?13:17),y:player.y+Math.sin(mount)*(melee?11:14)};
     }
+    const WEAPON_MUZZLE_LENGTHS={pistol:42,autoPistol:42,revolver:50,smg:47,shotgun:54,autoShotgun:54,rifle:56,assaultRifle:56,sniper:67,machineGun:56,minigun:61,crossbow:49,grenadeLauncher:58,flamethrower:58,plasmaPistol:42,peaShooter:40,seedCannon:46,compostMortar:46,waterGun:47,bubbleBlaster:47,thornSprayer:47,leafBlower:49,nailGun:48,slingshot:42,solarRay:54};
+    function weaponSkinSize(w,s=weaponStats(w)){const reference=(WEAPON_MUZZLE_LENGTHS[w.id]||Math.max(40,s.range*.55))*1.14;return clamp(reference/.95,46,82)}
     function weaponMuzzle(w,pose=weaponPose(w)){
-      const lengths={pistol:42,autoPistol:42,revolver:50,smg:47,shotgun:54,autoShotgun:54,rifle:56,assaultRifle:56,sniper:67,machineGun:56,minigun:61,crossbow:49,grenadeLauncher:58,flamethrower:58,plasmaPistol:42,peaShooter:40,seedCannon:46,compostMortar:46,waterGun:47,bubbleBlaster:47,thornSprayer:47,leafBlower:49,nailGun:48,slingshot:42,solarRay:54};
-      const motion=window.TomatoRender.weaponAnimation(w,weaponStats(w),player.attackSpeed),length=(lengths[w.id]||44)*1.14-motion.kick*7,angle=w.angle-motion.lift*(Math.cos(w.angle)<0?-1:1);
+      const stats=weaponStats(w),motion=window.TomatoRender.weaponAnimation(w,stats,player.attackSpeed),length=weaponSkinSize(w,stats)*.65-motion.kick*7,angle=w.angle-motion.lift*(Math.cos(w.angle)<0?-1:1);
       return {x:pose.x+Math.cos(angle)*length,y:pose.y+Math.sin(angle)*length,angle};
     }
     function drawWeaponSprite(w,s){
+      const skin=weaponSkins.get(w.id);
+      if(skin?.complete&&skin.naturalWidth){
+        const size=weaponSkinSize(w,s);
+        ctx.save();ctx.translate(size*.28,0);ctx.rotate(Math.PI/4);ctx.drawImage(skin,-size/2,-size/2,size,size);ctx.restore();return
+      }
       const spinFrame=w.id==='minigun'?Math.floor(performance.now()/70)%4:0;
       const sprite=spriteCache.get('weapon:'+w.id+':'+w.rarity+':'+spinFrame,120,80,g=>{
         g.translate(25,40);paintSprite(g,()=>drawWeaponShape({...w,spinFrame},s));
