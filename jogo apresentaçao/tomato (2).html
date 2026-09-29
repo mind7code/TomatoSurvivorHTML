@@ -66,6 +66,7 @@
         <div class="status-row"><i>☠️</i><small>ABATES</small><b id="killText">0</b></div>
       </aside></div>
       <div class="inventory" id="inventory"></div>
+      <output class="fps-counter" id="fpsCounter" aria-label="Quadros por segundo">FPS --</output>
       <button class="arsenal-btn" id="arsenalBtn">ARSENAL 1/6</button>
       <div class="weapon-info"><b id="weaponName">Pistola de Ervilha</b><span id="weaponMeta">COMUM • NV.1</span></div>
       <div class="notice" id="notice">ONDA 1</div>
@@ -75,15 +76,15 @@
 
     <section class="screen wave-transition" id="waveTransition" aria-live="assertive"><h2 id="transitionTitle">ONDA CONCLUÍDA</h2><strong id="transitionCount">3</strong></section>
 
-    <section class="screen modal" id="upgradeScreen" aria-labelledby="upgradeTitle">
-      <div class="panel">
+    <section class="screen modal" id="upgradeScreen" role="dialog" aria-modal="true" aria-labelledby="upgradeTitle" tabindex="-1">
+      <div class="panel upgrade-panel">
         <h2 id="upgradeTitle">Você cresceu!</h2>
         <p>Escolha uma mutação para o seu tomate.</p>
         <div class="cards" id="upgradeCards"></div>
       </div>
     </section>
 
-    <section class="screen modal" id="bossRewardScreen" aria-labelledby="bossRewardTitle">
+    <section class="screen modal" id="bossRewardScreen" role="dialog" aria-modal="true" aria-labelledby="bossRewardTitle" tabindex="-1">
       <div class="panel boss-reward-panel">
         <h2 id="bossRewardTitle">Chefe derrotado!</h2>
         <p>Escolha uma recompensa especial para enfrentar a próxima era.</p>
@@ -91,8 +92,8 @@
       </div>
     </section>
 
-    <section class="screen modal" id="shopScreen" aria-labelledby="shopTitle">
-      <div class="panel">
+    <section class="screen modal" id="shopScreen" role="dialog" aria-modal="true" aria-labelledby="shopTitle" tabindex="-1">
+      <div class="panel shop-panel">
         <h2 id="shopTitle">Banca da horta</h2>
         <p id="shopSubtitle">Gaste sementes antes da próxima onda.</p>
         <div class="cards" id="shopCards"></div>
@@ -101,7 +102,7 @@
       </div>
     </section>
 
-    <section class="screen modal" id="arsenalScreen" aria-labelledby="arsenalTitle">
+    <section class="screen modal" id="arsenalScreen" role="dialog" aria-modal="true" aria-labelledby="arsenalTitle" tabindex="-1">
       <div class="panel arsenal-panel">
         <h2 id="arsenalTitle">Arsenal</h2>
         <p id="arsenalSubtitle">Organize ou desequipe suas armas. A primeira é a arma principal.</p>
@@ -110,11 +111,11 @@
       </div>
     </section>
 
-    <section class="screen modal" id="pauseScreen" aria-labelledby="pauseTitle">
+    <section class="screen modal" id="pauseScreen" role="dialog" aria-modal="true" aria-labelledby="pauseTitle" tabindex="-1">
       <div class="panel end-panel"><span class="big-tomato">🍅</span><h2 id="pauseTitle">Jogo pausado</h2><p>A horta espera por você.</p><button class="start" id="resumeBtn">Continuar</button></div>
     </section>
 
-    <section class="screen modal" id="endScreen" aria-labelledby="endTitle">
+    <section class="screen modal" id="endScreen" role="dialog" aria-modal="true" aria-labelledby="endTitle" tabindex="-1">
       <div class="panel end-panel"><span class="big-tomato" id="endIcon">🍅</span><h2 id="endTitle">A horta foi salva!</h2><p id="endMessage">Você venceu as vinte ondas.</p><div class="end-stats"><span>Abates <b id="endKills">0</b></span><span>Nível <b id="endLevel">1</b></span><span>Sementes <b id="endSeeds">0</b></span></div><button class="start" id="restartBtn">Jogar novamente</button></div>
     </section>
 
@@ -164,8 +165,28 @@
     const $ = s => document.querySelector(s);
     const ui = {
       loading:$('#loadingScreen'),menu:$('#menu'),hud:$('#hud'),upgrade:$('#upgradeScreen'),bossReward:$('#bossRewardScreen'),shop:$('#shopScreen'),arsenal:$('#arsenalScreen'),pause:$('#pauseScreen'),end:$('#endScreen'),transition:$('#waveTransition'),
-      hpFill:$('#hpFill'),hpText:$('#hpText'),xpFill:$('#xpFill'),levelText:$('#levelText'),wave:$('#waveText'),time:$('#timeText'),seeds:$('#seedText'),damage:$('#damageText'),kills:$('#killText'),enemies:$('#enemyText'),speedStat:$('#speedStat'),attackSpeedStat:$('#attackSpeedStat'),critStat:$('#critStat'),armorStat:$('#armorStat'),projectileStat:$('#projectileStat'),portrait:$('.portrait'),synergy:$('#synergyText'),notice:$('#notice'),touch:$('#touchControls'),status:$('#statusText'),inventory:$('#inventory'),weaponName:$('#weaponName'),weaponMeta:$('#weaponMeta'),bossWrap:$('#bossWrap'),bossFill:$('#bossFill'),bossName:$('#bossName'),arsenalGrid:$('#arsenalGrid'),arsenalTitle:$('#arsenalTitle'),arsenalSubtitle:$('#arsenalSubtitle'),arsenalBtn:$('#arsenalBtn'),bossRewardCards:$('#bossRewardCards'),qualityBtn:$('#qualityBtn')
+      hpFill:$('#hpFill'),hpText:$('#hpText'),xpFill:$('#xpFill'),levelText:$('#levelText'),wave:$('#waveText'),time:$('#timeText'),seeds:$('#seedText'),damage:$('#damageText'),kills:$('#killText'),enemies:$('#enemyText'),speedStat:$('#speedStat'),attackSpeedStat:$('#attackSpeedStat'),critStat:$('#critStat'),armorStat:$('#armorStat'),projectileStat:$('#projectileStat'),portrait:$('.portrait'),synergy:$('#synergyText'),notice:$('#notice'),touch:$('#touchControls'),status:$('#statusText'),inventory:$('#inventory'),fps:$('#fpsCounter'),weaponName:$('#weaponName'),weaponMeta:$('#weaponMeta'),bossWrap:$('#bossWrap'),bossFill:$('#bossFill'),bossName:$('#bossName'),arsenalGrid:$('#arsenalGrid'),arsenalTitle:$('#arsenalTitle'),arsenalSubtitle:$('#arsenalSubtitle'),arsenalBtn:$('#arsenalBtn'),bossRewardCards:$('#bossRewardCards'),qualityBtn:$('#qualityBtn')
     };
+    const modalScreens=[ui.upgrade,ui.bossReward,ui.shop,ui.arsenal,ui.pause,ui.end];
+    let focusBeforeModal=null;
+    function focusModal(screen){
+      if(!screen||!screen.classList.contains('show'))return;
+      if(!focusBeforeModal&&typeof HTMLElement==='function'&&document.activeElement instanceof HTMLElement)focusBeforeModal=document.activeElement;
+      const target=screen.querySelector('button:not([disabled]),input:not([disabled]),[tabindex]:not([tabindex="-1"])')||screen;
+      requestAnimationFrame(()=>target.focus());
+    }
+    function trapModalFocus(event){
+      if(event.key!=='Tab')return;
+      const screen=modalScreens.find(item=>item.classList.contains('show'));
+      if(!screen)return;
+      const items=[...screen.querySelectorAll('button:not([disabled]),input:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(item=>item.offsetParent!==null);
+      if(!items.length){event.preventDefault();screen.focus();return}
+      const first=items[0],last=items[items.length-1];
+      if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+      else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+    }
+    if(typeof MutationObserver==='function')modalScreens.forEach(screen=>new MutationObserver(()=>{if(screen.classList.contains('show'))focusModal(screen)}).observe(screen,{attributes:true,attributeFilter:['class']}));
+    addEventListener('keydown',trapModalFocus);
 
     const chars = {
       classic:{name:'Clássico',color:'#ef4141',dark:'#991e2b',leaf:'#63d75a',hp:100,speed:190,damage:13,fireRate:.48},
@@ -192,21 +213,24 @@
     Object.assign(WEAPONS,window.TomatoContent.weapons);
     // Catálogo em js/content/weapons.js.
     const weaponIds=Object.keys(WEAPONS);
-    const spriteCache=window.TomatoRender.createSpriteCache(192),WEAPON_SKIN_PATH='./assets/weapons/';
+    const spriteCache=window.TomatoRender.createSpriteCache(192),WEAPON_SKIN_PATH='./assets/weapons/',ENEMY_SKIN_PATH='./assets/enemies/',BOSS_SKIN_PATH='./assets/bosses/';
     function paintSprite(g,paint){const previous=ctx;ctx=g;try{paint()}finally{ctx=previous}}
     const weaponSkins=new Map(weaponIds.map(id=>{const image=typeof Image==='function'?new Image():null;if(image){image.decoding='async';image.src=`${WEAPON_SKIN_PATH}${id}.png`}return [id,image]}));
     const weaponSpriteUrl=id=>`${WEAPON_SKIN_PATH}${id}.png`;
+    const ENEMY_SKIN_BY_THEME={rot:'podrinho',fungus:'fungoso',mold:'fungoso',spitter:'cuspidor',parasite:'parasita'};
+    const enemySkins=new Map(Object.values(ENEMY_SKIN_BY_THEME).filter((id,index,all)=>all.indexOf(id)===index).map(id=>{const image=typeof Image==='function'?new Image():null;if(image){image.decoding='async';image.src=`${ENEMY_SKIN_PATH}${id}.png`}return [id,image]}));
     const EVOLUTIONS={shortSword:{name:'Espada Infernal',mult:1.38,effect:'wideArc'},pistol:{name:'Dual Pistols',mult:1.18,projectiles:1},rifle:{name:'Rifle de Plasma',mult:1.45,projectiles:1,effect:'superPierce'},knife:{name:'Lâminas Gêmeas',mult:1.3,projectiles:1},hammer:{name:'Martelo Sísmico',mult:1.5,effect:'knockback'}};
     const BOSS_TYPES = [
       {kind:'rotKing',name:'REI DA PODRIDÃO',hp:3000,r:44,speed:38,damage:31,color:'#713449',xp:78,pattern:'radial'},
-      {kind:'megaWorm',name:'MINHOCÃO DA HORTA',hp:9700,r:49,speed:55,damage:38,color:'#71943f',xp:122,pattern:'aimed'},
-      {kind:'scarecrow',name:'ESPANTALHO MALDITO',hp:15800,r:52,speed:35,damage:44,color:'#b17b43',xp:172,pattern:'fan'},
-      {kind:'harvester',name:'COLHEITADEIRA CORROMPIDA',hp:24500,r:57,speed:45,damage:52,color:'#4a4a50',xp:245,pattern:'spiral'}
+      {kind:'megaWorm',name:'PARASITA DEVORADOR',hp:9700,r:49,speed:55,damage:38,color:'#9b7181',xp:122,pattern:'aimed'},
+      {kind:'scarecrow',name:'NECROBROTO ANCESTRAL',hp:15800,r:52,speed:35,damage:44,color:'#6f8f3e',xp:172,pattern:'fan'},
+      {kind:'harvester',name:'TANQUE PODRE COLOSSAL',hp:24500,r:57,speed:45,damage:52,color:'#896c55',xp:245,pattern:'spiral'}
     ];
+    const bossSkins=new Map(BOSS_TYPES.map(boss=>{const image=typeof Image==='function'?new Image():null;if(image){image.decoding='async';image.src=`${BOSS_SKIN_PATH}${boss.kind}.png`}return [boss.kind,image]}));
     const MINI_BOSS_TYPES = [
-      {kind:'weed',name:'ERVA DANINHA GIGANTE',color:'#5f8a35',pattern:'radial'},
-      {kind:'crowScout',name:'CORVO BATEDOR',color:'#4a4a55',pattern:'aimed'},
-      {kind:'moldClump',name:'AGLOMERADO DE MOFO',color:'#7a5a8a',pattern:'fan'}
+      {kind:'weed',name:'BROTO PÚTRIDO GIGANTE',color:'#6f973f',pattern:'radial'},
+      {kind:'crowScout',name:'CUSPIDOR ALADO',color:'#9860a7',pattern:'aimed'},
+      {kind:'moldClump',name:'AGLOMERADO FUNGOSO',color:'#a47a5c',pattern:'fan'}
     ];
     const SaveManager={key:'tomato-survivor-nick',warned:false,report(error){if(!this.warned){this.warned=true;console.warn('Não foi possível salvar o apelido neste navegador.',error)}},load(){try{return localStorage.getItem(this.key)||''}catch(error){this.report(error);return''}},save(v){try{localStorage.setItem(this.key,v)}catch(error){this.report(error)}}};
     const ParticleSystem={
@@ -361,7 +385,7 @@
         const k=kinds[type],canGear=era>0&&!summoned&&!['toxic','healer','explosive','shooter','elite','shieldBug','sniperBug'].includes(type),shielded=type==='shieldBug'||(canGear&&Math.random()<Math.min(.46,.10+era*.14)),armed=type==='sniperBug'||(canGear&&Math.random()<Math.min(.52,.12+era*.17)),hp=k.hp*scale.hp*3*difficultyScale(),shieldMax=shielded?hp*(type==='shieldBug'?.42:.12+era*.03):0;
         const spawnPos={x:clamp(pos.x,k.r,W-k.r),y:clamp(pos.y,k.r,H-k.r)};
         const diff=DIFFICULTIES[difficulty],scaledHp=hp*diff.hp;
-        enemies.push({...spawnPos,type,r:k.r,hp:scaledHp,maxHp:scaledHp,shieldHp:shieldMax*diff.hp,shieldMax:shieldMax*diff.hp,shielded,armed,era,speed:k.speed*1.5*scale.speed*diff.speed,damage:k.damage*scale.damage*(armed?1.18:1)*diff.damage,color:k.color,xp:k.xp,hit:0,wobble:Math.random()*6.28,attackClock:rand(.8,1.6),chargeTime:0,dead:false,elite:type==='elite',healer:type==='healer'});
+        enemies.push({...spawnPos,type,theme:k.theme,r:k.r,hp:scaledHp,maxHp:scaledHp,shieldHp:shieldMax*diff.hp,shieldMax:shieldMax*diff.hp,shielded,armed,era,speed:k.speed*1.5*scale.speed*diff.speed,damage:k.damage*scale.damage*(armed?1.18:1)*diff.damage,color:k.color,xp:k.xp,hit:0,wobble:Math.random()*6.28,attackClock:rand(.8,1.6),chargeTime:0,dead:false,elite:type==='elite',healer:type==='healer'});
       },
       spawnBoss(){
         // O primeiro chefe é uma prova de aprendizado; os seguintes mantêm a escala mais agressiva.
@@ -853,18 +877,63 @@
       });
     }
     function drawEnemy(e){
-      if(e.boss){drawEnemyVector(e);return}
-      const key='enemy:'+e.type+':'+e.color+':'+e.r+':'+!!e.armed+':'+(e.shieldHp>0)+':'+(e.hit>0);
-      const sprite=spriteCache.get(key,144,144,g=>paintSprite(g,()=>drawEnemyVector({...e,x:72,y:72,wobble:0,hit:e.hit>0?0.000001:0,burn:0,slow:0,hp:e.maxHp})));
+      if(e.boss){
+        const skin=bossSkins.get(e.kind);
+        if(skin&&skin.complete&&skin.naturalWidth){ctx.save();ctx.translate(e.x,e.y);ctx.translate(0,Math.sin(e.wobble)*2);const impact=clamp(e.hit/.08,0,1);ctx.scale(1+impact*.14,1-impact*.1);drawShadow(0,e.r*.35,e.r*1.22,.27);if(e.burn>0||e.slow>0){ctx.strokeStyle=e.burn>0?'#ff8a36':'#69e5ff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,e.r+10,0,Math.PI*2);ctx.stroke()}const size=e.r*3.45;ctx.drawImage(skin,-size/2,-size/2,size,size);ctx.restore();return}
+        drawEnemyVector(e);return
+      }
+      const skin=enemySkins.get(ENEMY_SKIN_BY_THEME[e.theme]);
+      if(skin&&skin.complete&&skin.naturalWidth){
+        ctx.save();ctx.translate(e.x,e.y);ctx.translate(0,Math.sin(e.wobble)*1.5);const impact=clamp(e.hit/.08,0,1);ctx.scale(1+impact*.13,1-impact*.09);drawShadow(0,e.r*.34,e.r*1.02,.22);const size=e.r*4.15;ctx.drawImage(skin,-size/2,-size/2,size,size);if(e.hp<e.maxHp){ctx.fillStyle='#231c22';ctx.fillRect(-e.r,-e.r-13,e.r*2,4);ctx.fillStyle=e.healer?'#ee82ad':'#a6e85d';ctx.fillRect(-e.r,-e.r-13,e.r*2*Math.max(0,e.hp/e.maxHp),4)}ctx.restore();return;
+      }
+      const key='enemy:'+e.type+':'+e.theme+':'+e.color+':'+e.r+':'+!!e.armed+':'+(e.shieldHp>0)+':'+(e.hit>0);
+      const sprite=spriteCache.get(key,112,112,g=>paintSprite(g,()=>drawEnemyVector({...e,x:56,y:56,wobble:0,hit:e.hit>0?0.000001:0,burn:0,slow:0,hp:e.maxHp})));
       const impact=clamp(e.hit/.08,0,1);
       ctx.save();ctx.translate(e.x,e.y+Math.sin(e.wobble)*1.5);ctx.scale(1+impact*.16,1-impact*.11);
-      ctx.drawImage(sprite,-72,-72,144,144);
+      ctx.drawImage(sprite,-56,-56,112,112);
       if(e.burn>0||e.slow>0){ctx.strokeStyle=e.burn>0?'#ff8a36':'#69e5ff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,e.r+8,0,Math.PI*2);ctx.stroke()}
       if(e.hp<e.maxHp){ctx.fillStyle='#231c22';ctx.fillRect(-e.r,-e.r-13,e.r*2,4);ctx.fillStyle=e.healer?'#ee82ad':'#ff9972';ctx.fillRect(-e.r,-e.r-13,e.r*2*Math.max(0,e.hp/e.maxHp),4)}
       ctx.restore();
     }
+    function drawRottenDetails(e){
+      const r=e.r,theme=e.theme||'rot',mold=theme==='fungus'||theme==='mold'||theme==='necro',slime=theme==='spitter'||theme==='parasite'||theme==='rot';
+      ctx.save();ctx.globalAlpha=e.hit>0?.32:.78;
+      for(let i=0;i<3;i++){const a=i*2.27+(e.type||e.bossKind||'rot').length*.31,px=Math.cos(a)*r*.5,py=Math.sin(a)*r*.42-r*.1;ellipse(px,py,Math.max(2,r*.13),Math.max(2,r*.1),mold?(i%2?'#b4d65b':'#586e36'):'#613d39','#25201d',1)}
+      if(slime){ctx.fillStyle=mold?'#9acb3f':'#91b73e';ctx.beginPath();ctx.arc(-r*.26,r*.63,Math.max(2,r*.11),0,Math.PI*2);ctx.arc(r*.18,r*.72,Math.max(1.5,r*.08),0,Math.PI*2);ctx.fill()}
+      if(mold){ctx.fillStyle='#d9c29b';ctx.beginPath();ctx.arc(r*.18,-r*.62,Math.max(2,r*.11),0,Math.PI*2);ctx.arc(r*.38,-r*.51,Math.max(1.5,r*.075),0,Math.PI*2);ctx.fill()}
+      ctx.restore();
+    }
+    function rottenEye(x,y,s=1){ellipse(x,y,5*s,6*s,'#f6efc9','#211713',2);ellipse(x+(s>1?1:0),y+1,2*s,3*s,'#241717',null);ctx.fillStyle='#fff8';ctx.beginPath();ctx.arc(x-1*s,y-2*s,1*s,0,Math.PI*2);ctx.fill()}
+    function rottenMouth(x,y,w=10){ctx.fillStyle='#23130f';ctx.strokeStyle='#100b09';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,w,0,Math.PI);ctx.fill();ctx.stroke();ctx.strokeStyle='#e8d6a3';ctx.lineWidth=1.5;for(let i=-w+3;i<w;i+=4){ctx.beginPath();ctx.moveTo(x+i,y+2);ctx.lineTo(x+i+1,y+6);ctx.stroke()}}
+    function drawRottenEnemy(e,flash){
+      const r=e.r,theme=e.theme||'rot';ctx.save();ctx.rotate(Math.sin(e.wobble)*.05);ctx.lineJoin='round';
+      if(theme==='fungus'||theme==='mold'){
+        ellipse(0,5,r*.82,r*.68,flash,'#251b18',4);ctx.fillStyle=theme==='fungus'?'#c46b43':'#a0707a';ctx.strokeStyle='#251b18';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,-r*.12,r*.93,Math.PI,0);ctx.lineTo(r*.72,4);ctx.lineTo(-r*.72,4);ctx.closePath();ctx.fill();ctx.stroke();for(let i=0;i<4;i++)ellipse(-r*.42+i*r*.27,-r*.28+(i%2)*5,3,3,'#f1c99c',null);rottenEye(-r*.25,4,.8);rottenEye(r*.28,3,.8);rottenMouth(1,r*.34,r*.25);
+      }else if(theme==='spitter'){
+        ellipse(0,3,r*.9,r*.76,flash,'#25151c',4);for(let i=0;i<3;i++){ctx.fillStyle='#e3c09b';ctx.beginPath();ctx.moveTo(-r*.55+i*r*.52,-r*.3);ctx.lineTo(-r*.39+i*r*.52,-r*.98);ctx.lineTo(-r*.18+i*r*.52,-r*.28);ctx.fill();ctx.stroke()}rottenEye(-r*.22,-r*.1,.9);ctx.fillStyle='#181111';ctx.beginPath();ctx.arc(r*.28,r*.15,r*.32,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#a6e63f';ctx.beginPath();ctx.arc(r*.42,r*.2,r*.13,0,Math.PI*2);ctx.fill();
+      }else if(theme==='parasite'){
+        for(let i=3;i>=0;i--){const x=-i*r*.42,y=Math.sin(e.wobble+i*.7)*r*.14;ellipse(x,y,r*(.35-i*.035),r*(.3-i*.025),i===0?flash:'#b87986','#2c1a1c',3);ctx.strokeStyle='#e4b1a5';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-r*.18,y-r*.16);ctx.lineTo(x-r*.1,y+r*.16);ctx.stroke()}ctx.fillStyle='#21120f';ctx.beginPath();ctx.arc(r*.22,0,r*.34,0,Math.PI*2);ctx.fill();ctx.stroke();for(let i=0;i<6;i++){const a=i*Math.PI/3;ctx.strokeStyle='#f3ddae';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(r*.22,0);ctx.lineTo(r*.22+Math.cos(a)*r*.3,Math.sin(a)*r*.3);ctx.stroke()}
+      }else if(theme==='tank'){
+        ellipse(0,5,r,r*.78,'#75655b','#221a16',5);for(let i=0;i<5;i++){const a=i*Math.PI*2/5-.6,px=Math.cos(a)*r*.58,py=Math.sin(a)*r*.45;ctx.fillStyle=i%2?'#9b8d77':'#554d45';ctx.strokeStyle='#221a16';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(px-r*.25,py);ctx.lineTo(px-r*.06,py-r*.23);ctx.lineTo(px+r*.22,py-r*.08);ctx.lineTo(px+r*.18,py+r*.24);ctx.lineTo(px-r*.18,py+r*.2);ctx.closePath();ctx.fill();ctx.stroke()}ellipse(0,3,r*.48,r*.4,flash,'#351d22',3);rottenEye(-r*.16,0,.8);rottenEye(r*.16,0,.8);rottenMouth(0,r*.23,r*.18);
+      }else if(theme==='necro'){
+        ctx.save();ctx.shadowColor='#9eea40';ctx.shadowBlur=14;for(let i=0;i<5;i++)leafShape(Math.cos(i*1.26)*r*.7,Math.sin(i*1.26)*r*.7,i*1.26,'#496e2c');ctx.restore();ellipse(0,0,r*.7,r*.76,'#cfbd88','#211b13',4);ctx.fillStyle='#241d16';ctx.beginPath();ctx.moveTo(-r*.37,-r*.05);ctx.lineTo(-r*.06,-r*.25);ctx.lineTo(-r*.1,r*.2);ctx.lineTo(-r*.39,r*.16);ctx.closePath();ctx.moveTo(r*.37,-r*.05);ctx.lineTo(r*.06,-r*.25);ctx.lineTo(r*.1,r*.2);ctx.lineTo(r*.39,r*.16);ctx.closePath();ctx.fill();ctx.fillStyle='#a7ef45';ctx.beginPath();ctx.arc(-r*.22,0,r*.1,0,Math.PI*2);ctx.arc(r*.22,0,r*.1,0,Math.PI*2);ctx.fill();rottenMouth(0,r*.29,r*.25);
+      }else {
+        ellipse(0,3,r*.88,r*.78,flash,'#291a20',4);for(let i=0;i<4;i++)leafShape(Math.cos(i*1.57+.3)*r*.7,-r*.66+Math.sin(i*1.57+.3)*r*.18,i*1.57+.3,'#557c31');rottenEye(-r*.25,-r*.05,.9);rottenEye(r*.25,-r*.05,.9);rottenMouth(0,r*.3,r*.28);
+      }
+      drawRottenDetails(e);if(e.armed){ctx.strokeStyle='#744329';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(r*.35,r*.25);ctx.lineTo(r*1.25,-r*.55);ctx.stroke()}if(e.shieldHp>0){ctx.globalAlpha=.7;ctx.strokeStyle='#a4e967';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,r+5,-2.4,1.1);ctx.stroke()}ctx.restore();
+    }
+    function drawRottenBoss(e,flash){
+      const r=e.r;ctx.save();ctx.rotate(Math.sin(e.wobble)*.035);ctx.shadowColor='#8ce53d';ctx.shadowBlur=12;
+      if(e.bossKind==='rotKing'){ellipse(0,3,r,r*.88,flash,'#26151a',6);ctx.fillStyle='#d7a831';ctx.strokeStyle='#25180e';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-r*.55,-r*.55);ctx.lineTo(-r*.38,-r*1.15);ctx.lineTo(-r*.06,-r*.62);ctx.lineTo(r*.15,-r*1.18);ctx.lineTo(r*.48,-r*.55);ctx.closePath();ctx.fill();ctx.stroke();rottenEye(-r*.3,-r*.1,1.35);rottenEye(r*.3,-r*.1,1.35);rottenMouth(0,r*.34,r*.38)}
+      else if(e.bossKind==='megaWorm'){for(let i=4;i>=0;i--)ellipse(-i*r*.38,Math.sin(e.wobble+i*.7)*r*.15,r*(.5-i*.04),r*(.4-i*.03),i?'#a16e7d':flash,'#2b1719',5);ctx.fillStyle='#1a0e0e';ctx.beginPath();ctx.arc(r*.28,0,r*.46,0,Math.PI*2);ctx.fill();ctx.stroke();for(let i=0;i<8;i++){const a=i*Math.PI/4;ctx.strokeStyle='#f1dfaf';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(r*.28,0);ctx.lineTo(r*.28+Math.cos(a)*r*.38,Math.sin(a)*r*.38);ctx.stroke()}}
+      else if(e.bossKind==='scarecrow'){for(let i=0;i<7;i++)leafShape(Math.cos(i*.9)*r*.75,Math.sin(i*.9)*r*.75,i*.9,'#6d973c');ellipse(0,0,r*.72,r*.85,'#d2bd82','#261d13',6);ctx.fillStyle='#201a13';ctx.beginPath();ctx.arc(-r*.25,-r*.05,r*.17,0,Math.PI*2);ctx.arc(r*.25,-r*.05,r*.17,0,Math.PI*2);ctx.fill();ctx.fillStyle='#a8f14a';ctx.beginPath();ctx.arc(-r*.25,-r*.05,r*.07,0,Math.PI*2);ctx.arc(r*.25,-r*.05,r*.07,0,Math.PI*2);ctx.fill();rottenMouth(0,r*.32,r*.35)}
+      else{ellipse(0,0,r,r*.82,'#75645a','#241b17',7);for(let i=0;i<7;i++){const a=i*Math.PI*2/7;ctx.fillStyle='#a2937c';ctx.strokeStyle='#2a211c';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(Math.cos(a)*r*.45,Math.sin(a)*r*.4);ctx.lineTo(Math.cos(a-.25)*r*1.22,Math.sin(a-.25)*r*1.02);ctx.lineTo(Math.cos(a+.25)*r*1.22,Math.sin(a+.25)*r*1.02);ctx.closePath();ctx.fill();ctx.stroke()}ellipse(0,0,r*.5,r*.43,flash,'#2c171a',4);rottenEye(-r*.18,-r*.05,1.1);rottenEye(r*.18,-r*.05,1.1);rottenMouth(0,r*.25,r*.26)}
+      drawRottenDetails(e);ctx.restore();
+    }
     function drawEnemyVector(e){
       ctx.save();ctx.translate(e.x,e.y);const flash=e.hit>0?'#fff':e.color,impact=clamp(e.hit/.08,0,1);drawShadow(0,0,e.r*1.05,.25);if(e.burn>0){ctx.strokeStyle='#ff8a36';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,e.r+6,0,Math.PI*2);ctx.stroke()}if(e.slow>0){ctx.strokeStyle='#69e5ff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,e.r+10,0,Math.PI*2);ctx.stroke()}ctx.translate(0,Math.sin(e.wobble)*1.5);ctx.scale(1+impact*.16,1-impact*.11);ctx.lineJoin='round';
+      if(e.boss){drawRottenBoss(e,flash);ctx.restore();return}
+      drawRottenEnemy(e,flash);if(e.hp<e.maxHp){ctx.fillStyle='#231c22';ctx.fillRect(-e.r,-e.r-13,e.r*2,4);ctx.fillStyle=e.healer?'#ee82ad':'#a6e85d';ctx.fillRect(-e.r,-e.r-13,e.r*2*Math.max(0,e.hp/e.maxHp),4)}ctx.restore();return;
       if(e.boss){
         ctx.save();ctx.rotate(Math.sin(e.wobble)*.04);
         if(e.bossKind==='rotKing'){
@@ -912,6 +981,7 @@
         const body=ctx.createRadialGradient(-7,-8,2,0,0,22);body.addColorStop(0,'#d7a2f4');body.addColorStop(1,flash);ellipse(0,0,17,16,body,'#2a2030',3.5);leafShape(-8,-12,-2.05,'#b579d3');leafShape(8,-12,-1.05,'#b579d3');
         ellipse(-6,-3,4.2,5,'#fff','#2a2030',2);ellipse(6,-3,4.2,5,'#fff','#2a2030',2);ellipse(-5,-2,1.7,2.3,'#25202a',null);ellipse(7,-2,1.7,2.3,'#25202a',null);ctx.beginPath();ctx.moveTo(-5,8);ctx.quadraticCurveTo(0,4,5,8);ctx.strokeStyle='#2a2030';ctx.lineWidth=2.4;ctx.stroke();
       }
+      drawRottenDetails(e);
       if(!e.boss){ctx.save();ctx.globalAlpha=.22;ellipse(-e.r*.4,-e.r*.5,e.r*.28,e.r*.13,'#fff',null);ctx.restore();if(e.hp<e.maxHp){ctx.fillStyle='#231c22';ctx.fillRect(-e.r,-e.r-13,e.r*2,4);ctx.fillStyle=e.healer?'#ee82ad':'#ff9972';ctx.fillRect(-e.r,-e.r-13,e.r*2*Math.max(0,e.hp/e.maxHp),4)}}
       if(!e.boss&&e.armed&&e.type!=='sniperBug'){ctx.save();ctx.rotate(-.42);ctx.strokeStyle='#51321f';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(12,4);ctx.lineTo(31,-12);ctx.stroke();ctx.fillStyle='#c8d2d7';ctx.strokeStyle='#282d30';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(27,-17);ctx.lineTo(39,-20);ctx.lineTo(34,-8);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
       if(!e.boss&&e.shieldHp>0){ctx.save();ctx.globalAlpha=.72;ctx.strokeStyle='#72dcff';ctx.shadowColor='#72dcff';ctx.shadowBlur=(12)*renderGlow;ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,e.r+7,-2.45,2.45);ctx.stroke();ctx.fillStyle='#68c9e8';ctx.strokeStyle='#174d65';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-e.r-8,-10);ctx.quadraticCurveTo(-e.r-18,-6,-e.r-15,6);ctx.quadraticCurveTo(-e.r-12,14,-e.r-5,18);ctx.quadraticCurveTo(e.r-1,10,-e.r-2,-8);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
@@ -1046,13 +1116,21 @@
         const s=weaponStats(w),rarity=RARITIES[w.rarity],isSelected=index===selectedWeaponIndex;slot.className=`weapon-slot ${w.rarity}${isSelected?' selected':''}`;slot.title=`Selecionar ${s.name}, ${rarity.name}, nível ${w.level}`;slot.setAttribute('aria-label',slot.title);slot.setAttribute('aria-selected',String(isSelected));slot.style.color=rarity.color;slot.innerHTML=`<img class="weapon-sprite" src="${weaponSpriteUrl(w.id)}" alt=""><span class="rarity-dot"></span><span class="slot-name">${s.name}</span><small>${isSelected?'★ ':''}NV.${w.level}</small>`;slot.addEventListener('click',()=>{selectedWeaponIndex=index;inventorySignature='';updateHud();sound('click')});ui.inventory.append(slot)
       }
     }
+    let fpsFrames=0,fpsSampleStarted=performance.now(),lastRenderedMode='';
+    // O navegador agenda a renderização no momento em que consegue exibi-la.
+    // Isso evita trabalho invisível, stutter e leituras de FPS artificiais.
+    const scheduleNextFrame=()=>requestAnimationFrame(loop);
     function loop(t){
       if(mode!=='playing'&&(aimInput.state.down||aimInput.state.pressed))aimInput.reset();
       const started=performance.now(),elapsed=t-last,dt=clamp(elapsed/1000,0,.05);last=t;acc=Math.min(.05,acc+dt);
       const step=1/SIMULATION_HZ;while(acc+1e-10>=step){update(step);acc=Math.max(0,acc-step)}
-      draw();
+      // Menus e recompensas mantêm o último quadro da arena: não há motivo para
+      // redesenhar centenas de objetos escondidos sob um modal estático.
+      const animatedScene=mode==='playing'||mode==='countdown'||mode==='transition';
+      if(animatedScene||mode!==lastRenderedMode){draw();lastRenderedMode=mode}
+      fpsFrames++;const fpsElapsed=t-fpsSampleStarted;if(fpsElapsed>=400){ui.fps.textContent=`FPS ${Math.round(fpsFrames*1000/fpsElapsed)}`;fpsFrames=0;fpsSampleStarted=t}
       if(mode==='playing'&&quality.sample(elapsed,performance.now()-started)){resolutionLimit=quality.profile().pixelScale;fitCanvasResolution();updateQualityLabel()}
-      requestAnimationFrame(loop);
+      scheduleNextFrame();
     }
 
     const nickInput=$('#nickInput');nickname=SaveManager.load()||'Tomate';nickInput.value=nickname==='Tomate'?'':nickname;$('#nickDisplay').textContent=nickname;scheduleLoadingReady();
@@ -1077,6 +1155,7 @@
       reg({name:'toggle_tomato_pause',title:'Pausar ou continuar',description:'Pausa ou continua a partida atual.',inputSchema:{type:'object',properties:{paused:{type:'boolean'}},required:['paused'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute:({paused})=>{togglePause(paused);return{status:mode}}});
       reg({name:'read_tomato_status',title:'Ver estado da partida',description:'Retorna onda, vida, nível, sementes e abates da partida.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:false},execute:()=>({status:mode,wave,hp:player?Math.ceil(player.hp):null,level:player?.level??null,seeds,kills})});
     }
+    // Apenas o primeiro quadro usa o agendador do navegador; o loop contínuo é livre.
     registerTools();draw();requestAnimationFrame(loop);
   })();
   </script>
